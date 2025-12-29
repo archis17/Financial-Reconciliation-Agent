@@ -1,0 +1,18 @@
+{
+  "total_transactions": 20,
+  "matched_transactions": 18,
+  "missing_in_bank": 1,
+  "missing_in_ledger": 1,
+  "match_rate": 0.9,
+  "noise_statistics": {
+    "avg_date_drift_days": 1.4444444444444444,
+    "max_date_drift_days": 7,
+    "avg_amount_difference": 0.5788888888888889,
+    "max_amount_difference": 4.81,
+    "description_variations": {
+      "none": 18,
+      "minor": 0,
+      "major": 0
+    }
+  }
+}

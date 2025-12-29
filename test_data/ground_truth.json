@@ -1,0 +1,530 @@
+{
+  "entries": [
+    {
+      "transaction_id": "625f585f-7708-4b61-bbd3-81f4e90ce1c3",
+      "true_date": "2024-01-29",
+      "true_amount": "25.07",
+      "transaction_type": "debit",
+      "true_description": "SPOTIFY",
+      "bank_date": "2024-01-29",
+      "bank_amount": "25.07",
+      "bank_description": "SPOTIFY",
+      "bank_present": true,
+      "ledger_date": "2024-01-29",
+      "ledger_amount": "25.07",
+      "ledger_description": "SPOTIFY",
+      "ledger_present": true,
+      "noise_applied": {
+        "date_drift_days": 0,
+        "amount_difference": 0.0,
+        "description_variation": "none"
+      }
+    },
+    {
+      "transaction_id": "86b021fc-c7b2-45ef-a224-c099168d37ab",
+      "true_date": "2024-01-24",
+      "true_amount": "107.68",
+      "transaction_type": "debit",
+      "true_description": "Amazon",
+      "bank_date": "2024-01-24",
+      "bank_amount": "107.68",
+      "bank_description": "Amazon",
+      "bank_present": true,
+      "ledger_date": "2024-01-24",
+      "ledger_amount": "107.68",
+      "ledger_description": "Amazon",
+      "ledger_present": true,
+      "noise_applied": {
+        "date_drift_days": 0,
+        "amount_difference": 0.0,
+        "description_variation": "none"
+      }
+    },
+    {
+      "transaction_id": "7d0aa0a2-916d-4b4d-bc6f-0631c6a3f643",
+      "true_date": "2024-01-21",
+      "true_amount": "178.53",
+      "transaction_type": "debit",
+      "true_description": "GAS",
+      "bank_date": "2024-01-23",
+      "bank_amount": "176.89",
+      "bank_description": "GAS",
+      "bank_present": true,
+      "ledger_date": null,
+      "ledger_amount": null,
+      "ledger_description": null,
+      "ledger_present": false,
+      "noise_applied": {}
+    },
+    {
+      "transaction_id": "5b137b1b-cc2f-44bb-80cc-f1eff78adc6a",
+      "true_date": "2024-01-05",
+      "true_amount": "3306.77",
+      "transaction_type": "debit",
+      "true_description": "WIRE TRANSFER",
+      "bank_date": "2024-01-07",
+      "bank_amount": "3309.71",
+      "bank_description": "WIRE TRANSFER",
+      "bank_present": true,
+      "ledger_date": "2024-01-06",
+      "ledger_amount": "3306.77",
+      "ledger_description": "WIRE TRANSFER",
+      "ledger_present": true,
+      "noise_applied": {
+        "date_drift_days": 1,
+        "amount_difference": 0.0,
+        "description_variation": "none"
+      }
+    },
+    {
+      "transaction_id": "0107a6b3-de56-4ac7-b57c-4744e57d249d",
+      "true_date": "2024-01-12",
+      "true_amount": "94.15",
+      "transaction_type": "debit",
+      "true_description": "Office Depot",
+      "bank_date": "2024-01-12",
+      "bank_amount": "94.15",
+      "bank_description": "OFFICE DEPOT",
+      "bank_present": true,
+      "ledger_date": "2024-01-12",
+      "ledger_amount": "98.13",
+      "ledger_description": "Office Depot",
+      "ledger_present": true,
+      "noise_applied": {
+        "date_drift_days": 0,
+        "amount_difference": 3.98,
+        "description_variation": "none"
+      }
+    },
+    {
+      "transaction_id": "b1322785-4a37-4042-a48b-16ca76c2f554",
+      "true_date": "2024-01-20",
+      "true_amount": "439.47",
+      "transaction_type": "debit",
+      "true_description": "UTILITY",
+      "bank_date": "2024-01-21",
+      "bank_amount": "439.47",
+      "bank_description": "UTILITY",
+      "bank_present": true,
+      "ledger_date": "2024-01-20",
+      "ledger_amount": "439.47",
+      "ledger_description": "UTILITY",
+      "ledger_present": true,
+      "noise_applied": {
+        "date_drift_days": 0,
+        "amount_difference": 0.0,
+        "description_variation": "none"
+      }
+    },
+    {
+      "transaction_id": "3b6d7b2e-d1c9-43df-b0a7-f4ed38100bd4",
+      "true_date": "2024-01-22",
+      "true_amount": "288.37",
+      "transaction_type": "debit",
+      "true_description": "VENDOR",
+      "bank_date": "2024-01-17",
+      "bank_amount": "288.37",
+      "bank_description": "VENDOR",
+      "bank_present": true,
+      "ledger_date": "2024-01-22",
+      "ledger_amount": "283.56",
+      "ledger_description": "VENDOR",
+      "ledger_present": true,
+      "noise_applied": {
+        "date_drift_days": 0,
+        "amount_difference": -4.81,
+        "description_variation": "none"
+      }
+    },
+    {
+      "transaction_id": "0961557c-0598-450f-a739-9de388b15f4d",
+      "true_date": "2024-01-08",
+      "true_amount": "4372.96",
+      "transaction_type": "credit",
+      "true_description": "SALARY",
+      "bank_date": "2024-01-05",
+      "bank_amount": "4372.96",
+      "bank_description": "SALARY",
+      "bank_present": true,
+      "ledger_date": "2024-01-08",
+      "ledger_amount": "4372.96",
+      "ledger_description": "SALARY",
+      "ledger_present": true,
+      "noise_applied": {
+        "date_drift_days": 0,
+        "amount_difference": 0.0,
+        "description_variation": "none"
+      }
+    },
+    {
+      "transaction_id": "596d7544-f993-4f6c-8c9c-071b0df5d29b",
+      "true_date": "2024-01-04",
+      "true_amount": "10.87",
+      "transaction_type": "debit",
+      "true_description": "STARBUCKS",
+      "bank_date": "2023-12-29",
+      "bank_amount": "10.87",
+      "bank_description": "STARBUCKS",
+      "bank_present": true,
+      "ledger_date": "2024-01-04",
+      "ledger_amount": "10.87",
+      "ledger_description": "STARBUCKS",
+      "ledger_present": true,
+      "noise_applied": {
+        "date_drift_days": 0,
+        "amount_difference": 0.0,
+        "description_variation": "none"
+      }
+    },
+    {
+      "transaction_id": "f4b85587-e5b9-4d2b-93e3-5ba4e363f6d1",
+      "true_date": "2024-01-28",
+      "true_amount": "76.65",
+      "transaction_type": "debit",
+      "true_description": "AMAZON.COM",
+      "bank_date": "2024-01-28",
+      "bank_amount": "76.65",
+      "bank_description": "AMAZON.COM",
+      "bank_present": true,
+      "ledger_date": "2024-01-28",
+      "ledger_amount": "76.65",
+      "ledger_description": "AMAZON.COM",
+      "ledger_present": true,
+      "noise_applied": {
+        "date_drift_days": 0,
+        "amount_difference": 0.0,
+        "description_variation": "none"
+      }
+    },
+    {
+      "transaction_id": "45141249-884a-4946-8448-c2480060234f",
+      "true_date": "2024-01-21",
+      "true_amount": "10.91",
+      "transaction_type": "debit",
+      "true_description": "Starbucks",
+      "bank_date": "2024-01-21",
+      "bank_amount": "10.91",
+      "bank_description": "Starbucks",
+      "bank_present": true,
+      "ledger_date": "2024-01-15",
+      "ledger_amount": "10.91",
+      "ledger_description": "Starbucks",
+      "ledger_present": true,
+      "noise_applied": {
+        "date_drift_days": -6,
+        "amount_difference": 0.0,
+        "description_variation": "none"
+      }
+    },
+    {
+      "transaction_id": "d8932dde-58a2-4319-91ca-94c3222a4b78",
+      "true_date": "2024-01-25",
+      "true_amount": "13.02",
+      "transaction_type": "debit",
+      "true_description": "SPOTIFY",
+      "bank_date": "2024-01-19",
+      "bank_amount": "13.48",
+      "bank_description": "SPOTIFY",
+      "bank_present": true,
+      "ledger_date": "2024-01-22",
+      "ledger_amount": "13.02",
+      "ledger_description": "SPOTIFY",
+      "ledger_present": true,
+      "noise_applied": {
+        "date_drift_days": -3,
+        "amount_difference": 0.0,
+        "description_variation": "none"
+      }
+    },
+    {
+      "transaction_id": "a098ae2d-5c27-4e99-9b7d-cb919a698b6b",
+      "true_date": "2024-01-10",
+      "true_amount": "96.37",
+      "transaction_type": "debit",
+      "true_description": "SHELL",
+      "bank_date": "2024-01-10",
+      "bank_amount": "96.37",
+      "bank_description": "SHELL",
+      "bank_present": true,
+      "ledger_date": "2024-01-10",
+      "ledger_amount": "96.37",
+      "ledger_description": "SHELL",
+      "ledger_present": true,
+      "noise_applied": {
+        "date_drift_days": 0,
+        "amount_difference": 0.0,
+        "description_variation": "none"
+      }
+    },
+    {
+      "transaction_id": "8193355a-b6bd-415b-9f81-ab5b35c96c17",
+      "true_date": "2024-01-31",
+      "true_amount": "8877.99",
+      "transaction_type": "credit",
+      "true_description": "PAYROLL",
+      "bank_date": "2024-02-03",
+      "bank_amount": "8877.99",
+      "bank_description": "PAYROLL",
+      "bank_present": true,
+      "ledger_date": "2024-02-04",
+      "ledger_amount": "8877.99",
+      "ledger_description": "PAYROLL",
+      "ledger_present": true,
+      "noise_applied": {
+        "date_drift_days": 4,
+        "amount_difference": 0.0,
+        "description_variation": "none"
+      }
+    },
+    {
+      "transaction_id": "08697d03-ad6c-4e49-81b9-f3b9fa4d8c26",
+      "true_date": "2024-01-08",
+      "true_amount": "7838.50",
+      "transaction_type": "credit",
+      "true_description": "SALARY",
+      "bank_date": "2024-01-06",
+      "bank_amount": "7838.20",
+      "bank_description": "SALARY",
+      "bank_present": true,
+      "ledger_date": "2024-01-05",
+      "ledger_amount": "7838.50",
+      "ledger_description": "SALARY",
+      "ledger_present": true,
+      "noise_applied": {
+        "date_drift_days": -3,
+        "amount_difference": 0.0,
+        "description_variation": "none"
+      }
+    },
+    {
+      "transaction_id": "c0603ed9-83e2-40e2-b5bd-55f0547438c9",
+      "true_date": "2024-01-12",
+      "true_amount": "3916.81",
+      "transaction_type": "credit",
+      "true_description": "WAGES",
+      "bank_date": "2024-01-18",
+      "bank_amount": "3916.81",
+      "bank_description": "WAGES",
+      "bank_present": true,
+      "ledger_date": "2024-01-12",
+      "ledger_amount": "3916.81",
+      "ledger_description": "WAGES",
+      "ledger_present": true,
+      "noise_applied": {
+        "date_drift_days": 0,
+        "amount_difference": 0.0,
+        "description_variation": "none"
+      }
+    },
+    {
+      "transaction_id": "b56e466d-ccc7-456a-965b-19874aec2386",
+      "true_date": "2024-01-02",
+      "true_amount": "19.91",
+      "transaction_type": "debit",
+      "true_description": "SPOTIFY",
+      "bank_date": "2024-01-02",
+      "bank_amount": "19.91",
+      "bank_description": "SPOTIFY",
+      "bank_present": true,
+      "ledger_date": "2023-12-31",
+      "ledger_amount": "19.91",
+      "ledger_description": "SPOTIFY",
+      "ledger_present": true,
+      "noise_applied": {
+        "date_drift_days": -2,
+        "amount_difference": 0.0,
+        "description_variation": "none"
+      }
+    },
+    {
+      "transaction_id": "05798ab7-1f1c-4727-a0db-2e713007191f",
+      "true_date": "2024-01-18",
+      "true_amount": "6973.71",
+      "transaction_type": "credit",
+      "true_description": "WAGES",
+      "bank_date": null,
+      "bank_amount": null,
+      "bank_description": null,
+      "bank_present": false,
+      "ledger_date": "2024-01-11",
+      "ledger_amount": "6975.63",
+      "ledger_description": "WAGES",
+      "ledger_present": true,
+      "noise_applied": {}
+    },
+    {
+      "transaction_id": "3b048b0a-34f5-4357-bb2f-467b024c0e0d",
+      "true_date": "2024-01-25",
+      "true_amount": "262.04",
+      "transaction_type": "debit",
+      "true_description": "Office Depot",
+      "bank_date": "2024-01-25",
+      "bank_amount": "258.71",
+      "bank_description": "Office Depot",
+      "bank_present": true,
+      "ledger_date": "2024-01-25",
+      "ledger_amount": "263.67",
+      "ledger_description": "Office Depot",
+      "ledger_present": true,
+      "noise_applied": {
+        "date_drift_days": 0,
+        "amount_difference": 1.63,
+        "description_variation": "none"
+      }
+    },
+    {
+      "transaction_id": "fdb849bd-9eb9-4e71-9dd6-0ebcd5bb59ce",
+      "true_date": "2024-01-04",
+      "true_amount": "2942.14",
+      "transaction_type": "credit",
+      "true_description": "SALARY",
+      "bank_date": "2024-01-01",
+      "bank_amount": "2944.44",
+      "bank_description": "SALARY",
+      "bank_present": true,
+      "ledger_date": "2023-12-28",
+      "ledger_amount": "2942.14",
+      "ledger_description": "SALARY",
+      "ledger_present": true,
+      "noise_applied": {
+        "date_drift_days": -7,
+        "amount_difference": 0.0,
+        "description_variation": "none"
+      }
+    }
+  ],
+  "statistics": {
+    "total_transactions": 20,
+    "matched_transactions": 18,
+    "missing_in_bank": 1,
+    "missing_in_ledger": 1,
+    "match_rate": 0.9,
+    "noise_statistics": {
+      "avg_date_drift_days": 1.4444444444444444,
+      "max_date_drift_days": 7,
+      "avg_amount_difference": 0.5788888888888889,
+      "max_amount_difference": 4.81,
+      "description_variations": {
+        "none": 18,
+        "minor": 0,
+        "major": 0
+      }
+    }
+  },
+  "matches": [
+    {
+      "bank_transaction_id": "bank_625f585f-7708-4b61-bbd3-81f4e90ce1c3",
+      "ledger_transaction_id": "ledger_625f585f-7708-4b61-bbd3-81f4e90ce1c3",
+      "true_transaction_id": "625f585f-7708-4b61-bbd3-81f4e90ce1c3",
+      "confidence_expected": 1.0
+    },
+    {
+      "bank_transaction_id": "bank_86b021fc-c7b2-45ef-a224-c099168d37ab",
+      "ledger_transaction_id": "ledger_86b021fc-c7b2-45ef-a224-c099168d37ab",
+      "true_transaction_id": "86b021fc-c7b2-45ef-a224-c099168d37ab",
+      "confidence_expected": 1.0
+    },
+    {
+      "bank_transaction_id": "bank_5b137b1b-cc2f-44bb-80cc-f1eff78adc6a",
+      "ledger_transaction_id": "ledger_5b137b1b-cc2f-44bb-80cc-f1eff78adc6a",
+      "true_transaction_id": "5b137b1b-cc2f-44bb-80cc-f1eff78adc6a",
+      "confidence_expected": 0.95
+    },
+    {
+      "bank_transaction_id": "bank_0107a6b3-de56-4ac7-b57c-4744e57d249d",
+      "ledger_transaction_id": "ledger_0107a6b3-de56-4ac7-b57c-4744e57d249d",
+      "true_transaction_id": "0107a6b3-de56-4ac7-b57c-4744e57d249d",
+      "confidence_expected": 0.8
+    },
+    {
+      "bank_transaction_id": "bank_b1322785-4a37-4042-a48b-16ca76c2f554",
+      "ledger_transaction_id": "ledger_b1322785-4a37-4042-a48b-16ca76c2f554",
+      "true_transaction_id": "b1322785-4a37-4042-a48b-16ca76c2f554",
+      "confidence_expected": 1.0
+    },
+    {
+      "bank_transaction_id": "bank_3b6d7b2e-d1c9-43df-b0a7-f4ed38100bd4",
+      "ledger_transaction_id": "ledger_3b6d7b2e-d1c9-43df-b0a7-f4ed38100bd4",
+      "true_transaction_id": "3b6d7b2e-d1c9-43df-b0a7-f4ed38100bd4",
+      "confidence_expected": 0.8
+    },
+    {
+      "bank_transaction_id": "bank_0961557c-0598-450f-a739-9de388b15f4d",
+      "ledger_transaction_id": "ledger_0961557c-0598-450f-a739-9de388b15f4d",
+      "true_transaction_id": "0961557c-0598-450f-a739-9de388b15f4d",
+      "confidence_expected": 1.0
+    },
+    {
+      "bank_transaction_id": "bank_596d7544-f993-4f6c-8c9c-071b0df5d29b",
+      "ledger_transaction_id": "ledger_596d7544-f993-4f6c-8c9c-071b0df5d29b",
+      "true_transaction_id": "596d7544-f993-4f6c-8c9c-071b0df5d29b",
+      "confidence_expected": 1.0
+    },
+    {
+      "bank_transaction_id": "bank_f4b85587-e5b9-4d2b-93e3-5ba4e363f6d1",
+      "ledger_transaction_id": "ledger_f4b85587-e5b9-4d2b-93e3-5ba4e363f6d1",
+      "true_transaction_id": "f4b85587-e5b9-4d2b-93e3-5ba4e363f6d1",
+      "confidence_expected": 1.0
+    },
+    {
+      "bank_transaction_id": "bank_45141249-884a-4946-8448-c2480060234f",
+      "ledger_transaction_id": "ledger_45141249-884a-4946-8448-c2480060234f",
+      "true_transaction_id": "45141249-884a-4946-8448-c2480060234f",
+      "confidence_expected": 0.7
+    },
+    {
+      "bank_transaction_id": "bank_d8932dde-58a2-4319-91ca-94c3222a4b78",
+      "ledger_transaction_id": "ledger_d8932dde-58a2-4319-91ca-94c3222a4b78",
+      "true_transaction_id": "d8932dde-58a2-4319-91ca-94c3222a4b78",
+      "confidence_expected": 0.85
+    },
+    {
+      "bank_transaction_id": "bank_a098ae2d-5c27-4e99-9b7d-cb919a698b6b",
+      "ledger_transaction_id": "ledger_a098ae2d-5c27-4e99-9b7d-cb919a698b6b",
+      "true_transaction_id": "a098ae2d-5c27-4e99-9b7d-cb919a698b6b",
+      "confidence_expected": 1.0
+    },
+    {
+      "bank_transaction_id": "bank_8193355a-b6bd-415b-9f81-ab5b35c96c17",
+      "ledger_transaction_id": "ledger_8193355a-b6bd-415b-9f81-ab5b35c96c17",
+      "true_transaction_id": "8193355a-b6bd-415b-9f81-ab5b35c96c17",
+      "confidence_expected": 0.8
+    },
+    {
+      "bank_transaction_id": "bank_08697d03-ad6c-4e49-81b9-f3b9fa4d8c26",
+      "ledger_transaction_id": "ledger_08697d03-ad6c-4e49-81b9-f3b9fa4d8c26",
+      "true_transaction_id": "08697d03-ad6c-4e49-81b9-f3b9fa4d8c26",
+      "confidence_expected": 0.85
+    },
+    {
+      "bank_transaction_id": "bank_c0603ed9-83e2-40e2-b5bd-55f0547438c9",
+      "ledger_transaction_id": "ledger_c0603ed9-83e2-40e2-b5bd-55f0547438c9",
+      "true_transaction_id": "c0603ed9-83e2-40e2-b5bd-55f0547438c9",
+      "confidence_expected": 1.0
+    },
+    {
+      "bank_transaction_id": "bank_b56e466d-ccc7-456a-965b-19874aec2386",
+      "ledger_transaction_id": "ledger_b56e466d-ccc7-456a-965b-19874aec2386",
+      "true_transaction_id": "b56e466d-ccc7-456a-965b-19874aec2386",
+      "confidence_expected": 0.9
+    },
+    {
+      "bank_transaction_id": "bank_3b048b0a-34f5-4357-bb2f-467b024c0e0d",
+      "ledger_transaction_id": "ledger_3b048b0a-34f5-4357-bb2f-467b024c0e0d",
+      "true_transaction_id": "3b048b0a-34f5-4357-bb2f-467b024c0e0d",
+      "confidence_expected": 0.8
+    },
+    {
+      "bank_transaction_id": "bank_fdb849bd-9eb9-4e71-9dd6-0ebcd5bb59ce",
+      "ledger_transaction_id": "ledger_fdb849bd-9eb9-4e71-9dd6-0ebcd5bb59ce",
+      "true_transaction_id": "fdb849bd-9eb9-4e71-9dd6-0ebcd5bb59ce",
+      "confidence_expected": 0.7
+    }
+  ],
+  "missing_in_bank": [
+    "ledger_05798ab7-1f1c-4727-a0db-2e713007191f"
+  ],
+  "missing_in_ledger": [
+    "bank_7d0aa0a2-916d-4b4d-bc6f-0631c6a3f643"
+  ]
+}
