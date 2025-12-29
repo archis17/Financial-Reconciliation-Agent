@@ -8,6 +8,7 @@ and classify discrepancies.
 from .models import Discrepancy, DiscrepancyType, DiscrepancySeverity, DiscrepancyResult
 from .detector import DiscrepancyDetector
 from .classifier import DiscrepancyClassifier
+from .llm_integration import DiscrepancyLLMIntegrator
 
 __all__ = [
     "Discrepancy",
@@ -16,5 +17,6 @@ __all__ = [
     "DiscrepancyResult",
     "DiscrepancyDetector",
     "DiscrepancyClassifier",
+    "DiscrepancyLLMIntegrator",
 ]
 
