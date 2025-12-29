@@ -1,0 +1,81 @@
+{
+  "reconciliation": {
+    "reconciliation_id": "0872ea2d-784c-433f-811c-0145377fdb4a",
+    "run_at": "2025-12-29T13:55:16.265484",
+    "status": "completed",
+    "bank_transactions_count": 19,
+    "ledger_transactions_count": 19,
+    "matched_count": 18,
+    "unmatched_bank_count": 1,
+    "unmatched_ledger_count": 1,
+    "discrepancy_count": 2,
+    "processing_time_seconds": 0.002092599868774414,
+    "llm_calls_made": 0,
+    "llm_tokens_used": 0
+  },
+  "matching": {
+    "total_matches": 18,
+    "unmatched_bank": 1,
+    "unmatched_ledger": 1,
+    "match_rate": 0.9473684210526315
+  },
+  "discrepancies": {
+    "total_discrepancies": 2,
+    "by_type": {
+      "missing_in_ledger": 1,
+      "missing_in_bank": 1,
+      "amount_mismatch": 0,
+      "date_mismatch": 0,
+      "duplicate": 0,
+      "possible_fraud": 0
+    },
+    "by_severity": {
+      "critical": 0,
+      "high": 1,
+      "medium": 1,
+      "low": 0
+    },
+    "discrepancies": [
+      {
+        "transaction_id": "46c6afa6-86fd-4fec-94e0-8b952d28942f",
+        "source": "bank",
+        "discrepancy_type": "missing_in_ledger",
+        "severity": "medium",
+        "machine_reason": "Bank transaction not found in ledger: GAS",
+        "llm_explanation": null,
+        "suggested_action": "Verify transaction was recorded in ledger",
+        "related_transaction_id": null,
+        "amount": "176.89",
+        "date": "2024-01-23",
+        "description": "GAS",
+        "expected_amount": null,
+        "actual_amount": null,
+        "amount_difference": null,
+        "expected_date": null,
+        "actual_date": null,
+        "date_difference_days": null,
+        "confidence": 1.0
+      },
+      {
+        "transaction_id": "e923245e-3aab-42d4-9741-01b8af5139be",
+        "source": "ledger",
+        "discrepancy_type": "missing_in_bank",
+        "severity": "high",
+        "machine_reason": "Ledger transaction not found in bank statement: WAGES",
+        "llm_explanation": null,
+        "suggested_action": "Verify transaction appears in bank statement",
+        "related_transaction_id": null,
+        "amount": "6975.63",
+        "date": "2024-01-11",
+        "description": "WAGES",
+        "expected_amount": null,
+        "actual_amount": null,
+        "amount_difference": null,
+        "expected_date": null,
+        "actual_date": null,
+        "date_difference_days": null,
+        "confidence": 1.0
+      }
+    ]
+  }
+}
