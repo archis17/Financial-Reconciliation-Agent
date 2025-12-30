@@ -1,0 +1,36 @@
+================================================================================
+FINANCIAL RECONCILIATION REPORT
+================================================================================
+
+Reconciliation ID: e7dfcdbe-840e-45ed-840d-23d2fe0ea92d
+Run Date: 2025-12-29 12:35:49
+Status: completed
+
+SUMMARY
+--------------------------------------------------------------------------------
+Bank Transactions: 48
+Ledger Transactions: 47
+Matched: 40
+Unmatched (Bank): 8
+Unmatched (Ledger): 7
+Discrepancies: 15
+Processing Time: 95.12 seconds
+LLM Calls: 15
+LLM Tokens Used: 6616
+
+DISCREPANCIES BY SEVERITY
+--------------------------------------------------------------------------------
+Critical: 0
+High: 10
+Medium: 5
+Low: 0
+
+DISCREPANCIES BY TYPE
+--------------------------------------------------------------------------------
+Missing in Ledger: 8
+Missing in Bank: 7
+Amount Mismatches: 0
+Date Mismatches: 0
+Duplicates: 0
+Possible Fraud: 0
+

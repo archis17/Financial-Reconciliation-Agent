@@ -1,0 +1,301 @@
+{
+  "project": {
+    "name": "AI Financial Reconciliation Agent",
+    "description": "Automated financial reconciliation system that reconciles bank statements with internal ledgers using fuzzy matching, embeddings, and LLM-based explanations",
+    "version": "1.0.0",
+    "type": "full-stack-financial-application"
+  },
+  "architecture": {
+    "backend": {
+      "framework": "FastAPI",
+      "language": "Python 3.9+",
+      "structure": "modular",
+      "components": [
+        {
+          "name": "ingestion",
+          "purpose": "Data ingestion and normalization",
+          "key_files": [
+            "ingestion/models.py",
+            "ingestion/parsers.py",
+            "ingestion/normalizers.py",
+            "ingestion/service.py"
+          ]
+        },
+        {
+          "name": "matching",
+          "purpose": "Transaction matching engine",
+          "key_files": [
+            "matching/engine.py",
+            "matching/rules.py",
+            "matching/embeddings.py",
+            "matching/scorer.py"
+          ],
+          "dependencies": ["sentence-transformers", "faiss-cpu", "numpy"]
+        },
+        {
+          "name": "discrepancy",
+          "purpose": "Discrepancy detection and classification",
+          "key_files": [
+            "discrepancy/detector.py",
+            "discrepancy/classifier.py",
+            "discrepancy/llm_integration.py"
+          ]
+        },
+        {
+          "name": "llm_service",
+          "purpose": "LLM-based explanations",
+          "key_files": [
+            "llm_service/service.py",
+            "llm_service/prompts.py"
+          ],
+          "model": "gpt-4o-mini",
+          "deterministic": true
+        },
+        {
+          "name": "reporting",
+          "purpose": "Report and ticket generation",
+          "key_files": [
+            "reporting/reports.py",
+            "reporting/tickets.py"
+          ],
+          "formats": ["CSV", "JSON", "TXT", "Jira", "ServiceNow", "n8n"]
+        },
+        {
+          "name": "api",
+          "purpose": "REST API endpoints",
+          "key_files": [
+            "api/main.py",
+            "api/run.py"
+          ],
+          "port": 8000,
+          "docs": "/api/docs"
+        }
+      ]
+    },
+    "frontend": {
+      "framework": "Next.js 15",
+      "language": "TypeScript",
+      "styling": "Tailwind CSS",
+      "animations": "Framer Motion",
+      "charts": "Recharts",
+      "structure": "app-router",
+      "components": [
+        "app/page.tsx",
+        "components/ReconciliationResults.tsx",
+        "components/SummaryCards.tsx",
+        "components/Charts.tsx",
+        "components/DiscrepancyList.tsx",
+        "components/ProgressIndicator.tsx"
+      ],
+      "port": 3000,
+      "api_url_env": "NEXT_PUBLIC_API_URL"
+    },
+    "data_flow": [
+      "File Upload → Ingestion → Normalization → Matching → Discrepancy Detection → LLM Enhancement → Reporting → Ticket Generation"
+    ]
+  },
+  "tech_stack": {
+    "backend": {
+      "core": ["Python", "FastAPI", "Pydantic"],
+      "data_processing": ["pandas", "numpy"],
+      "ml_embeddings": ["sentence-transformers", "faiss-cpu", "torch"],
+      "llm": ["openai"],
+      "database": ["sqlalchemy", "aiosqlite"],
+      "utilities": ["python-dateutil", "pytz"]
+    },
+    "frontend": {
+      "core": ["Next.js 15", "React 18", "TypeScript"],
+      "styling": ["Tailwind CSS"],
+      "animations": ["framer-motion"],
+      "visualization": ["recharts"],
+      "icons": ["lucide-react"],
+      "http": ["axios"]
+    },
+    "orchestration": {
+      "tool": "n8n",
+      "integration": "webhook-based",
+      "documentation": "N8N_INTEGRATION.md"
+    }
+  },
+  "key_concepts": {
+    "canonical_transaction": {
+      "description": "Standardized transaction format used throughout the system",
+      "fields": ["id", "source", "date", "amount", "transaction_type", "description", "reference"],
+      "file": "ingestion/models.py"
+    },
+    "matching_strategy": {
+      "description": "Multi-stage matching: exact → rule-based → embedding-based",
+      "confidence_scoring": "Weighted combination: amount (30%), date (20%), description (40%), reference (10%)",
+      "file": "matching/engine.py"
+    },
+    "discrepancy_types": [
+      "missing_in_ledger",
+      "missing_in_bank",
+      "amount_mismatch",
+      "date_mismatch",
+      "duplicate",
+      "possible_fraud"
+    ],
+    "severity_levels": ["low", "medium", "high", "critical"]
+  },
+  "file_structure": {
+    "root": {
+      "config_files": [
+        "requirements.txt",
+        ".gitignore",
+        ".env.example"
+      ],
+      "documentation": [
+        "README.md",
+        "START_HERE.md",
+        "FRONTEND_SETUP.md",
+        "N8N_INTEGRATION.md",
+        "INSTALLATION.md"
+      ],
+      "scripts": [
+        "generate_test_data.py",
+        "test_ingestion.py",
+        "test_matching_with_data.py",
+        "test_discrepancy_simple.py",
+        "test_reporting.py"
+      ]
+    },
+    "modules": {
+      "ingestion": "Data ingestion and normalization",
+      "matching": "Matching engine (rule-based + embeddings)",
+      "discrepancy": "Discrepancy detection and classification",
+      "llm_service": "LLM explanation service",
+      "reporting": "Report and ticket generation",
+      "synthetic_data": "Test data generator",
+      "api": "FastAPI REST API"
+    },
+    "frontend": {
+      "app": "Next.js app router pages",
+      "components": "React components",
+      "public": "Static assets"
+    },
+    "output_directories": [
+      "test_data/",
+      "reports/",
+      "uploads/"
+    ]
+  },
+  "api_endpoints": {
+    "base_url": "http://localhost:8000",
+    "endpoints": [
+      {
+        "path": "POST /api/reconcile",
+        "description": "Main reconciliation endpoint",
+        "inputs": ["bank_file", "ledger_file", "config parameters"],
+        "outputs": ["reconciliation_id", "summary", "tickets", "report_urls"]
+      },
+      {
+        "path": "GET /api/reports/{id}/csv",
+        "description": "Download CSV reconciliation report"
+      },
+      {
+        "path": "GET /api/tickets/{id}",
+        "description": "Get tickets in specified format (jira, servicenow, n8n, generic)"
+      },
+      {
+        "path": "GET /api/health",
+        "description": "Health check endpoint"
+      }
+    ],
+    "documentation": "/api/docs (Swagger UI)"
+  },
+  "data_formats": {
+    "input": {
+      "bank_statement": "CSV with columns: Date, Description, Debit, Credit, Balance, Reference",
+      "ledger": "CSV with columns: Transaction Date, Posting Date, Description, Amount, Type, Reference, Account"
+    },
+    "output": {
+      "csv_report": "Detailed transaction-level reconciliation report",
+      "json_summary": "Machine-readable summary with statistics",
+      "readable_report": "Human-readable text report",
+      "tickets": "JSON format for Jira, ServiceNow, n8n, or generic"
+    }
+  },
+  "configuration": {
+    "backend": {
+      "environment_variables": [
+        "OPENAI_API_KEY (for LLM explanations)"
+      ],
+      "matching_config": {
+        "amount_tolerance": "5.00 (default)",
+        "date_window_days": "7 (default)",
+        "min_confidence": "0.6 (default)"
+      }
+    },
+    "frontend": {
+      "environment_variables": [
+        "NEXT_PUBLIC_API_URL=http://localhost:8000"
+      ]
+    }
+  },
+  "testing": {
+    "test_data_generator": "generate_test_data.py",
+    "test_scripts": [
+      "test_ingestion.py",
+      "test_matching_with_data.py",
+      "test_discrepancy_simple.py",
+      "test_reporting.py"
+    ],
+    "synthetic_data": "synthetic_data/ module generates realistic test data with noise injection"
+  },
+  "deployment": {
+    "backend": {
+      "method": "Docker or direct Python",
+      "port": 8000,
+      "requirements": "Python 3.9+, virtual environment, dependencies from requirements.txt"
+    },
+    "frontend": {
+      "method": "Next.js production build",
+      "build_command": "npm run build",
+      "start_command": "npm start",
+      "port": 3000
+    },
+    "orchestration": "n8n workflows for automation"
+  },
+  "coding_conventions": {
+    "python": {
+      "style": "PEP 8",
+      "type_hints": "Used throughout",
+      "docstrings": "Google style",
+      "imports": "Absolute imports preferred"
+    },
+    "typescript": {
+      "strict_mode": true,
+      "components": "Functional components with hooks",
+      "styling": "Tailwind CSS utility classes",
+      "animations": "Framer Motion"
+    },
+    "naming": {
+      "files": "snake_case for Python, kebab-case for frontend",
+      "classes": "PascalCase",
+      "functions": "snake_case (Python), camelCase (TypeScript)"
+    }
+  },
+  "important_notes": {
+    "llm_usage": "LLM is used ONLY for explanations, not for matching decisions. Matching is deterministic.",
+    "matching_engine": "Supports both rule-based and embedding-based matching. Embeddings require sentence-transformers.",
+    "error_handling": "Graceful degradation - system continues even if LLM fails",
+    "cost_control": "LLM calls are cached, token usage tracked",
+    "n8n_integration": "Designed for webhook-based integration with n8n workflows",
+    "extensibility": "Modular design allows easy addition of new parsers, matching strategies, and output formats"
+  },
+  "phases_completed": [
+    "Phase 1: System Architecture & Data Contracts",
+    "Phase 2: Synthetic Test Data Generator",
+    "Phase 3: Data Ingestion & Normalization",
+    "Phase 4: Matching Engine (Non-LLM)",
+    "Phase 5: Discrepancy Detection",
+    "Phase 6: LLM Explanation Layer",
+    "Phase 7: Reporting & Actions",
+    "Phase 8: FastAPI Endpoints & Next.js Frontend"
+  ],
+  "phases_remaining": [
+    "Phase 9: Production Readiness (Docker, error handling, performance)"
+  ]
+}
+

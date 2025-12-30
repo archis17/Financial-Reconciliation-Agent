@@ -22,12 +22,36 @@ from discrepancy import DiscrepancyDetector, DiscrepancyLLMIntegrator
 from reporting import ReconciliationReportGenerator, TicketGenerator, TicketFormat
 from reporting.models import ReconciliationReport
 from llm_service import LLMExplanationService
+from api.exceptions import (
+    ValidationError,
+    FileProcessingError,
+    MatchingError,
+    LLMServiceError,
+    ResourceNotFoundError,
+    ServiceUnavailableError
+)
+from api.middleware import (
+    ErrorHandlingMiddleware,
+    RequestLoggingMiddleware,
+    RateLimitMiddleware
+)
 
-logging.basicConfig(level=logging.INFO)
+# Configure logging
+log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+logging.basicConfig(
+    level=getattr(logging, log_level, logging.INFO),
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 # Global state (in production, use Redis or database)
 reconciliation_results = {}
+
+# Configuration
+MAX_UPLOAD_SIZE_MB = int(os.getenv("MAX_UPLOAD_SIZE_MB", "50"))
+MAX_UPLOAD_SIZE_BYTES = MAX_UPLOAD_SIZE_MB * 1024 * 1024
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+RATE_LIMIT_PER_MINUTE = int(os.getenv("RATE_LIMIT_PER_MINUTE", "60"))
 
 
 def create_app() -> FastAPI:
@@ -40,10 +64,15 @@ def create_app() -> FastAPI:
         redoc_url="/api/redoc"
     )
     
+    # Add custom middleware (order matters - first added is last executed)
+    app.add_middleware(ErrorHandlingMiddleware)
+    app.add_middleware(RequestLoggingMiddleware)
+    app.add_middleware(RateLimitMiddleware, requests_per_minute=RATE_LIMIT_PER_MINUTE)
+    
     # CORS middleware
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],  # In production, specify actual origins
+        allow_origins=CORS_ORIGINS,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -90,23 +119,66 @@ async def root():
 @app.get("/health")
 async def health():
     """Health check endpoint."""
-    return {
+    health_status = {
         "status": "healthy",
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
+        "version": "1.0.0"
     }
+    
+    # Check dependencies
+    dependencies = {}
+    
+    # Check OpenAI (optional)
+    try:
+        from llm_service import LLMExplanationService
+        llm_service = LLMExplanationService()
+        dependencies["llm"] = "available" if llm_service.api_key else "not_configured"
+    except Exception as e:
+        dependencies["llm"] = f"error: {str(e)}"
+    
+    # Check file system
+    try:
+        upload_dir = Path("uploads")
+        upload_dir.mkdir(exist_ok=True)
+        test_file = upload_dir / ".health_check"
+        test_file.write_text("test")
+        test_file.unlink()
+        dependencies["filesystem"] = "available"
+    except Exception as e:
+        dependencies["filesystem"] = f"error: {str(e)}"
+        health_status["status"] = "degraded"
+    
+    health_status["dependencies"] = dependencies
+    
+    return health_status
 
 
 @app.post("/api/ingest/bank", response_model=dict)
 async def ingest_bank_statement(file: UploadFile = File(...)):
     """Ingest bank statement file."""
+    # Validate file
+    if not file.filename:
+        raise ValidationError("Filename is required", field="file")
+    
+    if not file.filename.endswith(('.csv', '.CSV')):
+        raise ValidationError("Only CSV files are supported", field="file")
+    
     try:
+        # Check file size
+        content = await file.read()
+        if len(content) > MAX_UPLOAD_SIZE_BYTES:
+            raise ValidationError(
+                f"File size exceeds maximum allowed size of {MAX_UPLOAD_SIZE_MB}MB",
+                field="file",
+                details={"max_size_mb": MAX_UPLOAD_SIZE_MB, "file_size_mb": len(content) / (1024 * 1024)}
+            )
+        
         # Save uploaded file temporarily
         upload_dir = Path("uploads")
         upload_dir.mkdir(exist_ok=True)
         
         filepath = upload_dir / f"bank_{uuid.uuid4()}_{file.filename}"
         with open(filepath, "wb") as f:
-            content = await file.read()
             f.write(content)
         
         # Ingest
@@ -121,21 +193,41 @@ async def ingest_bank_statement(file: UploadFile = File(...)):
             "stats": result.stats
         }
     
+    except ValidationError:
+        raise
     except Exception as e:
         logger.error(f"Error ingesting bank statement: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise FileProcessingError(
+            f"Failed to process bank statement: {str(e)}",
+            filename=file.filename
+        )
 
 
 @app.post("/api/ingest/ledger", response_model=dict)
 async def ingest_ledger(file: UploadFile = File(...)):
     """Ingest ledger file."""
+    # Validate file
+    if not file.filename:
+        raise ValidationError("Filename is required", field="file")
+    
+    if not file.filename.endswith(('.csv', '.CSV')):
+        raise ValidationError("Only CSV files are supported", field="file")
+    
     try:
+        # Check file size
+        content = await file.read()
+        if len(content) > MAX_UPLOAD_SIZE_BYTES:
+            raise ValidationError(
+                f"File size exceeds maximum allowed size of {MAX_UPLOAD_SIZE_MB}MB",
+                field="file",
+                details={"max_size_mb": MAX_UPLOAD_SIZE_MB, "file_size_mb": len(content) / (1024 * 1024)}
+            )
+        
         upload_dir = Path("uploads")
         upload_dir.mkdir(exist_ok=True)
         
         filepath = upload_dir / f"ledger_{uuid.uuid4()}_{file.filename}"
         with open(filepath, "wb") as f:
-            content = await file.read()
             f.write(content)
         
         service = IngestionService()
@@ -149,9 +241,14 @@ async def ingest_ledger(file: UploadFile = File(...)):
             "stats": result.stats
         }
     
+    except ValidationError:
+        raise
     except Exception as e:
         logger.error(f"Error ingesting ledger: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise FileProcessingError(
+            f"Failed to process ledger: {str(e)}",
+            filename=file.filename
+        )
 
 
 @app.post("/api/reconcile", response_model=ReconciliationResponse)
@@ -165,24 +262,53 @@ async def reconcile(
     min_severity_for_tickets: str = Form("low")
 ):
     """Perform reconciliation."""
+    # Validate parameters
+    if amount_tolerance < 0:
+        raise ValidationError("amount_tolerance must be non-negative", field="amount_tolerance")
+    if date_window_days < 0:
+        raise ValidationError("date_window_days must be non-negative", field="date_window_days")
+    if not 0 <= min_confidence <= 1:
+        raise ValidationError("min_confidence must be between 0 and 1", field="min_confidence")
+    if min_severity_for_tickets not in ["low", "medium", "high", "critical"]:
+        raise ValidationError(
+            "min_severity_for_tickets must be one of: low, medium, high, critical",
+            field="min_severity_for_tickets"
+        )
+    
+    # Validate files
+    if not bank_file.filename or not ledger_file.filename:
+        raise ValidationError("Both bank_file and ledger_file are required")
+    
     start_time = time.time()
     reconciliation_id = str(uuid.uuid4())
     
     try:
-        # Save uploaded files
+        # Save uploaded files with size validation
         upload_dir = Path("uploads")
         upload_dir.mkdir(exist_ok=True)
         
         bank_filepath = upload_dir / f"bank_{reconciliation_id}_{bank_file.filename}"
         ledger_filepath = upload_dir / f"ledger_{reconciliation_id}_{ledger_file.filename}"
         
+        bank_content = await bank_file.read()
+        ledger_content = await ledger_file.read()
+        
+        if len(bank_content) > MAX_UPLOAD_SIZE_BYTES:
+            raise ValidationError(
+                f"Bank file size exceeds maximum allowed size of {MAX_UPLOAD_SIZE_MB}MB",
+                field="bank_file"
+            )
+        if len(ledger_content) > MAX_UPLOAD_SIZE_BYTES:
+            raise ValidationError(
+                f"Ledger file size exceeds maximum allowed size of {MAX_UPLOAD_SIZE_MB}MB",
+                field="ledger_file"
+            )
+        
         with open(bank_filepath, "wb") as f:
-            content = await bank_file.read()
-            f.write(content)
+            f.write(bank_content)
         
         with open(ledger_filepath, "wb") as f:
-            content = await ledger_file.read()
-            f.write(content)
+            f.write(ledger_content)
         
         # Create config from parameters
         config = ReconciliationRequest(
@@ -194,29 +320,46 @@ async def reconcile(
         )
         
         # 1. Ingest
-        ingestion_service = IngestionService()
-        bank_result = ingestion_service.ingest_bank_statement(str(bank_filepath))
-        ledger_result = ingestion_service.ingest_ledger(str(ledger_filepath))
+        try:
+            ingestion_service = IngestionService()
+            bank_result = ingestion_service.ingest_bank_statement(str(bank_filepath))
+            ledger_result = ingestion_service.ingest_ledger(str(ledger_filepath))
+        except Exception as e:
+            logger.error(f"Error during ingestion: {e}", exc_info=True)
+            raise FileProcessingError(f"Failed to ingest files: {str(e)}")
+        
+        if not bank_result.transactions:
+            raise ValidationError("Bank statement contains no valid transactions")
+        if not ledger_result.transactions:
+            raise ValidationError("Ledger contains no valid transactions")
         
         # 2. Match
-        matching_config = MatchingConfig(
-            amount_tolerance=Decimal(str(config.amount_tolerance)),
-            date_window_days=config.date_window_days
-        )
-        matching_engine = MatchingEngine(matching_config=matching_config)
-        match_result = matching_engine.match(
-            bank_result.transactions,
-            ledger_result.transactions,
-            min_confidence=config.min_confidence
-        )
+        try:
+            matching_config = MatchingConfig(
+                amount_tolerance=Decimal(str(config.amount_tolerance)),
+                date_window_days=config.date_window_days
+            )
+            matching_engine = MatchingEngine(matching_config=matching_config)
+            match_result = matching_engine.match(
+                bank_result.transactions,
+                ledger_result.transactions,
+                min_confidence=config.min_confidence
+            )
+        except Exception as e:
+            logger.error(f"Error during matching: {e}", exc_info=True)
+            raise MatchingError(f"Failed to match transactions: {str(e)}")
         
         # 3. Detect discrepancies
-        detector = DiscrepancyDetector()
-        discrepancy_result = detector.detect(
-            bank_result.transactions,
-            ledger_result.transactions,
-            match_result
-        )
+        try:
+            detector = DiscrepancyDetector()
+            discrepancy_result = detector.detect(
+                bank_result.transactions,
+                ledger_result.transactions,
+                match_result
+            )
+        except Exception as e:
+            logger.error(f"Error during discrepancy detection: {e}", exc_info=True)
+            raise MatchingError(f"Failed to detect discrepancies: {str(e)}")
         
         # 4. Enhance with LLM (if enabled)
         llm_calls = 0
@@ -241,6 +384,8 @@ async def reconcile(
                 llm_tokens = stats["total_tokens_used"]
             except Exception as e:
                 logger.warning(f"LLM enhancement failed: {e}")
+                # Don't fail the entire reconciliation if LLM fails
+                # Just log and continue without LLM explanations
         
         # 5. Create report
         processing_time = time.time() - start_time
@@ -330,9 +475,12 @@ async def reconcile(
             tickets=formatted_tickets
         )
     
+    except (ValidationError, FileProcessingError, MatchingError, LLMServiceError):
+        # Re-raise custom exceptions as-is
+        raise
     except Exception as e:
         logger.error(f"Error during reconciliation: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise ServiceUnavailableError(f"Reconciliation failed: {str(e)}")
 
 
 @app.get("/api/reports/{reconciliation_id}/csv")
@@ -343,7 +491,7 @@ async def get_csv_report(reconciliation_id: str):
     
     files = list(reports_dir.glob(pattern))
     if not files:
-        raise HTTPException(status_code=404, detail="Report not found")
+        raise ResourceNotFoundError("CSV report", reconciliation_id)
     
     return FileResponse(
         files[0],
@@ -360,7 +508,7 @@ async def get_summary_report(reconciliation_id: str):
     
     files = list(reports_dir.glob(pattern))
     if not files:
-        raise HTTPException(status_code=404, detail="Report not found")
+        raise ResourceNotFoundError("Summary report", reconciliation_id)
     
     return FileResponse(
         files[0],
@@ -377,7 +525,7 @@ async def get_readable_report(reconciliation_id: str):
     
     files = list(reports_dir.glob(pattern))
     if not files:
-        raise HTTPException(status_code=404, detail="Report not found")
+        raise ResourceNotFoundError("Readable report", reconciliation_id)
     
     return FileResponse(
         files[0],
@@ -393,10 +541,7 @@ async def get_tickets(
 ):
     """Get tickets in specified format."""
     if reconciliation_id not in reconciliation_results:
-        raise HTTPException(status_code=404, detail="Reconciliation not found")
-    
-    tickets = reconciliation_results[reconciliation_id]["tickets"]
-    ticket_generator = TicketGenerator()
+        raise ResourceNotFoundError("Reconciliation", reconciliation_id)
     
     format_map = {
         "jira": TicketFormat.JIRA,
@@ -406,7 +551,15 @@ async def get_tickets(
         "email": TicketFormat.EMAIL
     }
     
-    ticket_format = format_map.get(format.lower(), TicketFormat.N8N)
+    if format.lower() not in format_map:
+        raise ValidationError(
+            f"Invalid format. Must be one of: {', '.join(format_map.keys())}",
+            field="format"
+        )
+    
+    tickets = reconciliation_results[reconciliation_id]["tickets"]
+    ticket_generator = TicketGenerator()
+    ticket_format = format_map[format.lower()]
     
     formatted_tickets = [
         ticket_generator.format_ticket(ticket, ticket_format)
@@ -420,7 +573,7 @@ async def get_tickets(
 async def get_reconciliation(reconciliation_id: str):
     """Get reconciliation details."""
     if reconciliation_id not in reconciliation_results:
-        raise HTTPException(status_code=404, detail="Reconciliation not found")
+        raise ResourceNotFoundError("Reconciliation", reconciliation_id)
     
     data = reconciliation_results[reconciliation_id]
     return {
