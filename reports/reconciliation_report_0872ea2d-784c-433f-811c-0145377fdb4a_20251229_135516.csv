@@ -1,0 +1,21 @@
+Transaction ID,Source,Date,Amount,Type,Description,Match Status,Matched With,Match Confidence,Discrepancy Type,Severity,Machine Reason,LLM Explanation,Suggested Action
+778e70fe,Bank,2023-12-29,10.87,debit,STARBUCKS,Matched,86c17dc6,0.829,,,,,
+303a8e43,Bank,2024-01-01,2944.44,credit,SALARY,Matched,5da24fa0,0.748,,,,,
+25305b41,Bank,2024-01-02,19.91,debit,SPOTIFY,Matched,60ae0289,0.943,,,,,
+6f38c5d6,Bank,2024-01-05,4372.96,credit,SALARY,Matched,e5d279a6,0.914,,,,,
+262bc0e8,Bank,2024-01-06,7838.20,credit,SALARY,Matched,f1d9b868,0.953,,,,,
+d699735d,Bank,2024-01-07,3309.71,debit,WIRE TRANSFER,Matched,76334413,0.795,,,,,
+e336510f,Bank,2024-01-10,96.37,debit,SHELL,Matched,24aed937,1.000,,,,,
+d505dead,Bank,2024-01-12,94.15,debit,OFFICE DEPOT,Matched,98de04d4,0.761,,,,,
+e0ddfe1f,Bank,2024-01-17,288.37,debit,VENDOR,Matched,e3275b3f,0.569,,,,,
+5c28ed8e,Bank,2024-01-18,3916.81,credit,WAGES,Matched,757a5d2b,0.829,,,,,
+58e70c36,Bank,2024-01-19,13.48,debit,SPOTIFY,Matched,ae41b59c,0.887,,,,,
+0a7d2370,Bank,2024-01-21,439.47,debit,UTILITY,Matched,d591eea8,0.971,,,,,
+82d2dc7e,Bank,2024-01-21,10.91,debit,Starbucks,Matched,a5aa09a8,0.829,,,,,
+46c6afa6,Bank,2024-01-23,176.89,debit,GAS,Unmatched,,,missing_in_ledger,medium,Bank transaction not found in ledger: GAS,,Verify transaction was recorded in ledger
+dba43a57,Bank,2024-01-24,107.68,debit,Amazon,Matched,62e401e2,1.000,,,,,
+ba58f094,Bank,2024-01-25,258.71,debit,Office Depot,Matched,6ba1d784,0.702,,,,,
+c9ee9efa,Bank,2024-01-28,76.65,debit,AMAZON.COM,Matched,2e020d00,1.000,,,,,
+c7a40777,Bank,2024-01-29,25.07,debit,SPOTIFY,Matched,170637f7,1.000,,,,,
+b39a17e2,Bank,2024-02-03,8877.99,credit,PAYROLL,Matched,839f9d83,0.971,,,,,
+e923245e,Ledger,2024-01-11,6975.63,credit,WAGES,Unmatched,,,missing_in_bank,high,Ledger transaction not found in bank statement: WAGES,,Verify transaction appears in bank statement

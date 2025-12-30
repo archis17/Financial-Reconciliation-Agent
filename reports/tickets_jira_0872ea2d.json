@@ -1,0 +1,54 @@
+[
+  {
+    "fields": {
+      "project": {
+        "key": "RECON"
+      },
+      "summary": "Missing In Ledger: GAS $176.89",
+      "description": "**Discrepancy Type:** Missing In Ledger\n**Severity:** MEDIUM\n**Reconciliation ID:** 0872ea2d-784c-433f-811c-0145377fdb4a\n\n**Transaction Details:**\n- Description: GAS\n- Amount: $176.89\n- Date: 2024-01-23\n\n**Issue:**\nBank transaction not found in ledger: GAS\n\n**Suggested Action:**\nVerify transaction was recorded in ledger",
+      "issuetype": {
+        "name": "Task"
+      },
+      "priority": {
+        "name": "Medium"
+      },
+      "labels": [
+        "reconciliation",
+        "missing_in_ledger",
+        "medium",
+        "recon-0872ea2d"
+      ],
+      "assignee": {
+        "name": "accounting-team"
+      },
+      "duedate": "2026-01-05",
+      "customfield_10000": "missing_in_ledger"
+    }
+  },
+  {
+    "fields": {
+      "project": {
+        "key": "RECON"
+      },
+      "summary": "Missing In Bank: WAGES $6975.63",
+      "description": "**Discrepancy Type:** Missing In Bank\n**Severity:** HIGH\n**Reconciliation ID:** 0872ea2d-784c-433f-811c-0145377fdb4a\n\n**Transaction Details:**\n- Description: WAGES\n- Amount: $6975.63\n- Date: 2024-01-11\n\n**Issue:**\nLedger transaction not found in bank statement: WAGES\n\n**Suggested Action:**\nVerify transaction appears in bank statement",
+      "issuetype": {
+        "name": "Task"
+      },
+      "priority": {
+        "name": "High"
+      },
+      "labels": [
+        "reconciliation",
+        "missing_in_bank",
+        "high",
+        "recon-0872ea2d"
+      ],
+      "assignee": {
+        "name": "accounting-team"
+      },
+      "duedate": "2026-01-01",
+      "customfield_10000": "missing_in_bank"
+    }
+  }
+]

@@ -1,0 +1,140 @@
+# Financial Reconciliation Agent - Cursor Rules
+
+## Project Overview
+This is an AI-powered financial reconciliation system that automatically reconciles bank statements with internal ledgers using fuzzy matching, embeddings, and LLM-based explanations.
+
+## Architecture
+
+### Backend (Python/FastAPI)
+- **Modular design**: Each module (ingestion, matching, discrepancy, llm_service, reporting) is self-contained
+- **Data flow**: File Upload → Ingestion → Normalization → Matching → Discrepancy Detection → LLM Enhancement → Reporting
+- **Key principle**: LLM is used ONLY for explanations, NOT for matching decisions (matching is deterministic)
+
+### Frontend (Next.js/TypeScript)
+- **Framework**: Next.js 15 with App Router
+- **Styling**: Tailwind CSS with custom animations
+- **Animations**: Framer Motion for smooth transitions
+- **Charts**: Recharts for data visualization
+
+## Code Style
+
+### Python
+- Use type hints throughout
+- Follow PEP 8
+- Use absolute imports (e.g., `from ingestion.models import Transaction`)
+- Write docstrings in Google style
+- Handle errors gracefully with logging
+
+### TypeScript/React
+- Use functional components with hooks
+- Prefer TypeScript strict mode
+- Use Tailwind utility classes for styling
+- Use Framer Motion for animations
+- Keep components focused and reusable
+
+## Key Files
+
+### Backend Core
+- `ingestion/models.py` - Canonical transaction model
+- `matching/engine.py` - Main matching orchestrator
+- `discrepancy/detector.py` - Discrepancy detection logic
+- `llm_service/service.py` - LLM explanation service
+- `api/main.py` - FastAPI application
+
+### Frontend Core
+- `frontend/app/page.tsx` - Main page component
+- `frontend/components/ReconciliationResults.tsx` - Results display
+- `frontend/components/Charts.tsx` - Data visualization
+
+## Important Conventions
+
+1. **Transaction Model**: Always use the canonical `Transaction` model from `ingestion.models`
+2. **Matching**: Use `MatchingEngine` which combines rule-based and embedding-based matching
+3. **Discrepancies**: Use `DiscrepancyDetector` to detect and classify discrepancies
+4. **LLM**: Use `LLMExplanationService` with temperature=0 for deterministic explanations
+5. **Reports**: Use `ReconciliationReportGenerator` for CSV/JSON/text reports
+6. **Tickets**: Use `TicketGenerator` with format enum (Jira, ServiceNow, n8n, etc.)
+
+## Testing
+- Use `generate_test_data.py` to create test datasets
+- Test scripts are in root directory (test_*.py)
+- Synthetic data generator includes realistic noise injection
+
+## API Endpoints
+- Base URL: `http://localhost:8000`
+- Docs: `/api/docs` (Swagger UI)
+- Main endpoint: `POST /api/reconcile`
+
+## Environment Variables
+- Backend: `OPENAI_API_KEY` (for LLM features)
+- Frontend: `NEXT_PUBLIC_API_URL` (API base URL)
+
+## When Adding Features
+
+1. **New Parser**: Add to `ingestion/parsers.py`, implement `BaseParser`
+2. **New Matching Strategy**: Add to `matching/` module, integrate with `MatchingEngine`
+3. **New Report Format**: Add to `reporting/reports.py`
+4. **New Ticket Format**: Add enum to `TicketFormat`, implement formatter in `tickets.py`
+5. **New Frontend Component**: Add to `frontend/components/`, use Framer Motion for animations
+
+## Common Patterns
+
+### Error Handling
+```python
+try:
+    # operation
+except Exception as e:
+    logger.error(f"Error: {e}", exc_info=True)
+    # graceful fallback
+```
+
+### API Endpoints
+```python
+@app.post("/api/endpoint")
+async def endpoint(file: UploadFile = File(...)):
+    # handle file upload
+    # process
+    # return response
+```
+
+### Frontend Components
+```typescript
+'use client';
+import { motion } from 'framer-motion';
+
+export default function Component() {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      {/* content */}
+    </motion.div>
+  );
+}
+```
+
+## Dependencies
+- Backend: See `requirements.txt`
+- Frontend: See `frontend/package.json`
+- Critical: numpy, sentence-transformers, faiss-cpu, openai, fastapi, next.js, framer-motion
+
+## File Organization
+- Keep modules self-contained
+- Use `__init__.py` for clean imports
+- Group related functionality together
+- Output directories: `test_data/`, `reports/`, `uploads/`
+
+## Performance Considerations
+- Cache embeddings when possible
+- Batch LLM requests
+- Use FAISS for fast similarity search
+- Consider async operations for I/O
+
+## Security
+- Never commit API keys
+- Use environment variables
+- Validate file uploads
+- Sanitize user inputs
+- CORS configured for frontend
+

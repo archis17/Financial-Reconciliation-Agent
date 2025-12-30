@@ -1,0 +1,26 @@
+[
+  {
+    "short_description": "Missing In Ledger: GAS $176.89",
+    "description": "**Discrepancy Type:** Missing In Ledger\n**Severity:** MEDIUM\n**Reconciliation ID:** 0872ea2d-784c-433f-811c-0145377fdb4a\n\n**Transaction Details:**\n- Description: GAS\n- Amount: $176.89\n- Date: 2024-01-23\n\n**Issue:**\nBank transaction not found in ledger: GAS\n\n**Suggested Action:**\nVerify transaction was recorded in ledger",
+    "priority": "3",
+    "severity": "medium",
+    "category": "Financial Reconciliation",
+    "subcategory": "missing_in_ledger",
+    "assignment_group": "Accounting",
+    "assigned_to": "accounting-team",
+    "due_date": "2026-01-05T13:55:16.266109",
+    "work_notes": "Verify transaction was recorded in ledger"
+  },
+  {
+    "short_description": "Missing In Bank: WAGES $6975.63",
+    "description": "**Discrepancy Type:** Missing In Bank\n**Severity:** HIGH\n**Reconciliation ID:** 0872ea2d-784c-433f-811c-0145377fdb4a\n\n**Transaction Details:**\n- Description: WAGES\n- Amount: $6975.63\n- Date: 2024-01-11\n\n**Issue:**\nLedger transaction not found in bank statement: WAGES\n\n**Suggested Action:**\nVerify transaction appears in bank statement",
+    "priority": "2",
+    "severity": "high",
+    "category": "Financial Reconciliation",
+    "subcategory": "missing_in_bank",
+    "assignment_group": "Accounting",
+    "assigned_to": "accounting-team",
+    "due_date": "2026-01-01T13:55:16.266132",
+    "work_notes": "Verify transaction appears in bank statement"
+  }
+]
