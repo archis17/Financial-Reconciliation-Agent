@@ -30,10 +30,10 @@ if __name__ == "__main__":
         )
     else:
         # Single worker mode (development)
-        uvicorn.run(
-            app,
+    uvicorn.run(
+        app,
             host=host,
             port=port,
             reload=reload
-        )
+    )
 

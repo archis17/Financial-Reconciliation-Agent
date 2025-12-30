@@ -21,9 +21,9 @@ export default function Charts({ summary }: { summary: any }) {
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="glass-dark rounded-2xl p-6"
+        className="card p-6"
       >
-        <h3 className="text-xl font-semibold text-white mb-4">Match Distribution</h3>
+        <h3 className="text-xl font-semibold text-gray-900 mb-4">Match Distribution</h3>
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie
@@ -49,26 +49,25 @@ export default function Charts({ summary }: { summary: any }) {
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.2 }}
-        className="glass-dark rounded-2xl p-6"
+        className="card p-6"
       >
-        <h3 className="text-xl font-semibold text-white mb-4">Reconciliation Overview</h3>
+        <h3 className="text-xl font-semibold text-gray-900 mb-4">Reconciliation Overview</h3>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={barData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-            <XAxis dataKey="name" stroke="#9ca3af" />
-            <YAxis stroke="#9ca3af" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis dataKey="name" stroke="#6b7280" />
+            <YAxis stroke="#6b7280" />
             <Tooltip
               contentStyle={{
-                backgroundColor: '#1f2937',
-                border: '1px solid #374151',
+                backgroundColor: '#ffffff',
+                border: '1px solid #e5e7eb',
                 borderRadius: '8px',
               }}
             />
-            <Bar dataKey="value" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
+            <Bar dataKey="value" fill="#2563eb" radius={[8, 8, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </motion.div>
     </div>
   );
 }
-

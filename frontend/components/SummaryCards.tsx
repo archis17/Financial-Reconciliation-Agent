@@ -9,29 +9,33 @@ export default function SummaryCards({ summary }: { summary: any }) {
       title: 'Matched',
       value: summary.matched || 0,
       icon: CheckCircle2,
-      color: 'green',
-      gradient: 'from-green-500 to-emerald-500',
+      color: 'text-green-600',
+      bgColor: 'bg-green-50',
+      borderColor: 'border-green-200',
     },
     {
       title: 'Unmatched (Bank)',
       value: summary.unmatched_bank || 0,
       icon: FileX,
-      color: 'yellow',
-      gradient: 'from-yellow-500 to-orange-500',
+      color: 'text-yellow-600',
+      bgColor: 'bg-yellow-50',
+      borderColor: 'border-yellow-200',
     },
     {
       title: 'Unmatched (Ledger)',
       value: summary.unmatched_ledger || 0,
       icon: FileX,
-      color: 'orange',
-      gradient: 'from-orange-500 to-red-500',
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50',
+      borderColor: 'border-orange-200',
     },
     {
       title: 'Discrepancies',
       value: summary.discrepancies || 0,
       icon: AlertCircle,
-      color: 'red',
-      gradient: 'from-red-500 to-pink-500',
+      color: 'text-red-600',
+      bgColor: 'bg-red-50',
+      borderColor: 'border-red-200',
     },
   ];
 
@@ -43,19 +47,18 @@ export default function SummaryCards({ summary }: { summary: any }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1 }}
-          whileHover={{ scale: 1.05, y: -5 }}
-          className="glass-dark rounded-2xl p-6 border border-white/10 hover:border-purple-500/50 transition-all"
+          whileHover={{ scale: 1.02, y: -2 }}
+          className={`card p-6 border-2 ${card.borderColor} hover:shadow-lg transition-all`}
         >
           <div className="flex items-center justify-between mb-4">
-            <div className={`p-3 rounded-lg bg-gradient-to-br ${card.gradient} bg-opacity-20`}>
-              <card.icon className={`w-6 h-6 text-${card.color}-400`} />
+            <div className={`p-3 rounded-lg ${card.bgColor}`}>
+              <card.icon className={`w-6 h-6 ${card.color}`} />
             </div>
           </div>
-          <div className="text-3xl font-bold text-white mb-1">{card.value}</div>
-          <div className="text-sm text-gray-400">{card.title}</div>
+          <div className="text-3xl font-bold text-gray-900 mb-1">{card.value}</div>
+          <div className="text-sm text-gray-600">{card.title}</div>
         </motion.div>
       ))}
     </div>
   );
 }
-

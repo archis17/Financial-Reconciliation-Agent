@@ -101,6 +101,17 @@ docker-compose up -d --build
 curl http://localhost:8000/health
 ```
 
+### Access Services
+
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8000
+- **API Docs**: http://localhost:8000/api/docs
+- **Prometheus**: http://localhost:9090
+- **Grafana**: http://localhost:3001
+  - **Username**: `admin`
+  - **Password**: `admin` (default) or set via `GRAFANA_ADMIN_PASSWORD` env var
+  - ⚠️ **Change password in production!**
+
 ### Production Features
 
 - **Docker Support**: Full Docker and Docker Compose configuration

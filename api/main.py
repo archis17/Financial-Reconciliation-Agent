@@ -10,7 +10,8 @@ from datetime import datetime
 from typing import Optional, List
 from pathlib import Path
 
-from fastapi import FastAPI, File, UploadFile, HTTPException, BackgroundTasks, Form
+from fastapi import FastAPI, File, UploadFile, HTTPException, BackgroundTasks, Form, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
@@ -22,6 +23,15 @@ from discrepancy import DiscrepancyDetector, DiscrepancyLLMIntegrator
 from reporting import ReconciliationReportGenerator, TicketGenerator, TicketFormat
 from reporting.models import ReconciliationReport
 from llm_service import LLMExplanationService
+from database.session import get_db
+from database.repository import (
+    ReconciliationRepository,
+    ReconciliationResultRepository,
+    AuditLogRepository
+)
+from database.models import User
+from auth.dependencies import require_auth
+from uuid import UUID
 from api.exceptions import (
     ValidationError,
     FileProcessingError,
@@ -35,6 +45,9 @@ from api.middleware import (
     RequestLoggingMiddleware,
     RateLimitMiddleware
 )
+from api.auth import router as auth_router
+from api.metrics import MetricsMiddleware, record_reconciliation, record_llm_call
+from api.metrics_endpoint import metrics_endpoint
 
 # Configure logging
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()
@@ -44,8 +57,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Global state (in production, use Redis or database)
-reconciliation_results = {}
+# Database is now used instead of in-memory storage
 
 # Configuration
 MAX_UPLOAD_SIZE_MB = int(os.getenv("MAX_UPLOAD_SIZE_MB", "50"))
@@ -65,6 +77,7 @@ def create_app() -> FastAPI:
     )
     
     # Add custom middleware (order matters - first added is last executed)
+    app.add_middleware(MetricsMiddleware)
     app.add_middleware(ErrorHandlingMiddleware)
     app.add_middleware(RequestLoggingMiddleware)
     app.add_middleware(RateLimitMiddleware, requests_per_minute=RATE_LIMIT_PER_MINUTE)
@@ -77,6 +90,9 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    
+    # Include routers
+    app.include_router(auth_router)
     
     return app
 
@@ -114,6 +130,12 @@ async def root():
         "version": "1.0.0",
         "docs": "/api/docs"
     }
+
+
+@app.get("/metrics")
+async def metrics():
+    """Prometheus metrics endpoint."""
+    return await metrics_endpoint()
 
 
 @app.get("/health")
@@ -259,7 +281,9 @@ async def reconcile(
     date_window_days: int = Form(7),
     min_confidence: float = Form(0.6),
     enable_llm: bool = Form(True),
-    min_severity_for_tickets: str = Form("low")
+    min_severity_for_tickets: str = Form("low"),
+    current_user: User = Depends(require_auth),
+    db: AsyncSession = Depends(get_db)
 ):
     """Perform reconciliation."""
     # Validate parameters
@@ -280,15 +304,35 @@ async def reconcile(
         raise ValidationError("Both bank_file and ledger_file are required")
     
     start_time = time.time()
-    reconciliation_id = str(uuid.uuid4())
+    
+    # Initialize repositories
+    reconciliation_repo = ReconciliationRepository(db)
+    result_repo = ReconciliationResultRepository(db)
+    audit_repo = AuditLogRepository(db)
+    
+    # Create reconciliation record
+    config_dict = {
+        "amount_tolerance": amount_tolerance,
+        "date_window_days": date_window_days,
+        "min_confidence": min_confidence,
+        "enable_llm": enable_llm,
+        "min_severity_for_tickets": min_severity_for_tickets
+    }
+    
+    reconciliation = await reconciliation_repo.create(
+        user_id=current_user.id,
+        config_json=config_dict,
+        status="processing"
+    )
+    reconciliation_id_str = str(reconciliation.id)
     
     try:
         # Save uploaded files with size validation
         upload_dir = Path("uploads")
         upload_dir.mkdir(exist_ok=True)
         
-        bank_filepath = upload_dir / f"bank_{reconciliation_id}_{bank_file.filename}"
-        ledger_filepath = upload_dir / f"ledger_{reconciliation_id}_{ledger_file.filename}"
+        bank_filepath = upload_dir / f"bank_{reconciliation.id}_{bank_file.filename}"
+        ledger_filepath = upload_dir / f"ledger_{reconciliation.id}_{ledger_file.filename}"
         
         bank_content = await bank_file.read()
         ledger_content = await ledger_file.read()
@@ -319,6 +363,9 @@ async def reconcile(
             min_severity_for_tickets=min_severity_for_tickets
         )
         
+        # Update reconciliation with file paths
+        await reconciliation_repo.update_status(reconciliation.id, "processing")
+        
         # 1. Ingest
         try:
             ingestion_service = IngestionService()
@@ -326,6 +373,7 @@ async def reconcile(
             ledger_result = ingestion_service.ingest_ledger(str(ledger_filepath))
         except Exception as e:
             logger.error(f"Error during ingestion: {e}", exc_info=True)
+            await reconciliation_repo.update_status(reconciliation.id, "failed")
             raise FileProcessingError(f"Failed to ingest files: {str(e)}")
         
         if not bank_result.transactions:
@@ -347,6 +395,7 @@ async def reconcile(
             )
         except Exception as e:
             logger.error(f"Error during matching: {e}", exc_info=True)
+            await reconciliation_repo.update_status(reconciliation.id, "failed")
             raise MatchingError(f"Failed to match transactions: {str(e)}")
         
         # 3. Detect discrepancies
@@ -359,6 +408,7 @@ async def reconcile(
             )
         except Exception as e:
             logger.error(f"Error during discrepancy detection: {e}", exc_info=True)
+            await reconciliation_repo.update_status(reconciliation.id, "failed")
             raise MatchingError(f"Failed to detect discrepancies: {str(e)}")
         
         # 4. Enhance with LLM (if enabled)
@@ -382,15 +432,17 @@ async def reconcile(
                 stats = llm_service.get_usage_stats()
                 llm_calls = stats["total_requests"]
                 llm_tokens = stats["total_tokens_used"]
+                record_llm_call("success", llm_tokens)
             except Exception as e:
                 logger.warning(f"LLM enhancement failed: {e}")
+                record_llm_call("error")
                 # Don't fail the entire reconciliation if LLM fails
                 # Just log and continue without LLM explanations
         
         # 5. Create report
         processing_time = time.time() - start_time
         report = ReconciliationReport(
-            reconciliation_id=reconciliation_id,
+            reconciliation_id=reconciliation_id_str,
             run_at=datetime.now(),
             status="completed",
             bank_transactions_count=len(bank_result.transactions),
@@ -407,7 +459,7 @@ async def reconcile(
         # 6. Generate reports
         report_generator = ReconciliationReportGenerator(output_dir="reports")
         csv_path = report_generator.generate_csv_report(
-            reconciliation_id,
+            reconciliation_id_str,
             bank_result.transactions,
             ledger_result.transactions,
             match_result,
@@ -415,13 +467,13 @@ async def reconcile(
             report
         )
         summary_path = report_generator.generate_summary_report(
-            reconciliation_id,
+            reconciliation_id_str,
             report,
             match_result,
             discrepancy_result
         )
         readable_path = report_generator.generate_readable_report(
-            reconciliation_id,
+            reconciliation_id_str,
             report,
             match_result,
             discrepancy_result
@@ -440,7 +492,7 @@ async def reconcile(
         ticket_generator = TicketGenerator()
         tickets = ticket_generator.generate_tickets_from_discrepancies(
             discrepancy_result.discrepancies,
-            reconciliation_id,
+            reconciliation_id_str,
             min_severity=min_severity
         )
         
@@ -450,21 +502,78 @@ async def reconcile(
             for ticket in tickets
         ]
         
-        # Store results
-        reconciliation_results[reconciliation_id] = {
-            "report": report,
-            "match_result": match_result,
-            "discrepancy_result": discrepancy_result,
-            "tickets": tickets
+        # Store results in database
+        import json
+        from matching.models import MatchResult
+        from discrepancy.models import DiscrepancyResult
+        
+        # Convert to JSON-serializable format
+        match_result_dict = {
+            "matches": [
+                {
+                    "bank_id": m.bank_transaction.id,
+                    "ledger_id": m.ledger_transaction.id,
+                    "match_type": m.match_type.value,
+                    "confidence": m.confidence
+                }
+                for m in match_result.matches
+            ],
+            "unmatched_bank": [tx.id for tx in match_result.unmatched_bank],
+            "unmatched_ledger": [tx.id for tx in match_result.unmatched_ledger]
         }
         
+        discrepancy_result_dict = {
+            "discrepancies": [
+                {
+                    "type": d.discrepancy_type.value,
+                    "severity": d.severity.value,
+                    "description": d.description,
+                    "bank_transaction_id": d.bank_transaction.id if d.bank_transaction else None,
+                    "ledger_transaction_id": d.ledger_transaction.id if d.ledger_transaction else None,
+                    "explanation": d.explanation
+                }
+                for d in discrepancy_result.discrepancies
+            ]
+        }
+        
+        tickets_list = [ticket.to_dict() for ticket in tickets]
+        
+        await result_repo.create(
+            reconciliation_id=reconciliation.id,
+            report_json=report.to_dict(),
+            match_result_json=match_result_dict,
+            discrepancy_result_json=discrepancy_result_dict,
+            tickets_json=tickets_list
+        )
+        
+        # Update reconciliation status
+        await reconciliation_repo.update_status(
+            reconciliation.id,
+            "completed",
+            completed_at=datetime.now()
+        )
+        
+        # Log reconciliation completion
+        await audit_repo.create(
+            action="reconciliation_completed",
+            user_id=current_user.id,
+            resource_type="reconciliation",
+            resource_id=reconciliation_id_str,
+            metadata_json={"processing_time": processing_time}
+        )
+        
+        await db.commit()
+        
+        # Record metrics
+        record_reconciliation("completed", processing_time)
+        
         return ReconciliationResponse(
-            reconciliation_id=reconciliation_id,
+            reconciliation_id=reconciliation_id_str,
             status="completed",
-            report_url=f"/api/reports/{reconciliation_id}/csv",
-            summary_url=f"/api/reports/{reconciliation_id}/summary",
-            readable_url=f"/api/reports/{reconciliation_id}/readable",
-            tickets_url=f"/api/tickets/{reconciliation_id}",
+            report_url=f"/api/reports/{reconciliation_id_str}/csv",
+            summary_url=f"/api/reports/{reconciliation_id_str}/summary",
+            readable_url=f"/api/reports/{reconciliation_id_str}/readable",
+            tickets_url=f"/api/tickets/{reconciliation_id_str}",
             summary={
                 "matched": len(match_result.matches),
                 "unmatched_bank": len(match_result.unmatched_bank),
@@ -477,15 +586,46 @@ async def reconcile(
     
     except (ValidationError, FileProcessingError, MatchingError, LLMServiceError):
         # Re-raise custom exceptions as-is
+        # Update status to failed
+        try:
+            if 'reconciliation' in locals():
+                await reconciliation_repo.update_status(reconciliation.id, "failed")
+                await db.commit()
+            record_reconciliation("failed", time.time() - start_time)
+        except:
+            pass
         raise
     except Exception as e:
         logger.error(f"Error during reconciliation: {e}", exc_info=True)
+        # Update status to failed
+        try:
+            if 'reconciliation' in locals():
+                await reconciliation_repo.update_status(reconciliation.id, "failed")
+                await db.commit()
+            record_reconciliation("failed", time.time() - start_time)
+        except:
+            pass
         raise ServiceUnavailableError(f"Reconciliation failed: {str(e)}")
 
 
 @app.get("/api/reports/{reconciliation_id}/csv")
-async def get_csv_report(reconciliation_id: str):
+async def get_csv_report(
+    reconciliation_id: str,
+    current_user: User = Depends(require_auth),
+    db: AsyncSession = Depends(get_db)
+):
     """Get CSV reconciliation report."""
+    from uuid import UUID
+    
+    reconciliation_repo = ReconciliationRepository(db)
+    reconciliation = await reconciliation_repo.get_by_id(
+        UUID(reconciliation_id),
+        user_id=current_user.id
+    )
+    
+    if not reconciliation:
+        raise ResourceNotFoundError("Reconciliation", reconciliation_id)
+    
     reports_dir = Path("reports")
     pattern = f"reconciliation_report_{reconciliation_id}_*.csv"
     
@@ -501,8 +641,22 @@ async def get_csv_report(reconciliation_id: str):
 
 
 @app.get("/api/reports/{reconciliation_id}/summary")
-async def get_summary_report(reconciliation_id: str):
+async def get_summary_report(
+    reconciliation_id: str,
+    current_user: User = Depends(require_auth),
+    db: AsyncSession = Depends(get_db)
+):
     """Get JSON summary report."""
+    
+    reconciliation_repo = ReconciliationRepository(db)
+    reconciliation = await reconciliation_repo.get_by_id(
+        UUID(reconciliation_id),
+        user_id=current_user.id
+    )
+    
+    if not reconciliation:
+        raise ResourceNotFoundError("Reconciliation", reconciliation_id)
+    
     reports_dir = Path("reports")
     pattern = f"reconciliation_summary_{reconciliation_id}_*.json"
     
@@ -518,8 +672,22 @@ async def get_summary_report(reconciliation_id: str):
 
 
 @app.get("/api/reports/{reconciliation_id}/readable")
-async def get_readable_report(reconciliation_id: str):
+async def get_readable_report(
+    reconciliation_id: str,
+    current_user: User = Depends(require_auth),
+    db: AsyncSession = Depends(get_db)
+):
     """Get readable text report."""
+    
+    reconciliation_repo = ReconciliationRepository(db)
+    reconciliation = await reconciliation_repo.get_by_id(
+        UUID(reconciliation_id),
+        user_id=current_user.id
+    )
+    
+    if not reconciliation:
+        raise ResourceNotFoundError("Reconciliation", reconciliation_id)
+    
     reports_dir = Path("reports")
     pattern = f"reconciliation_readable_{reconciliation_id}_*.txt"
     
@@ -537,11 +705,27 @@ async def get_readable_report(reconciliation_id: str):
 @app.get("/api/tickets/{reconciliation_id}")
 async def get_tickets(
     reconciliation_id: str,
-    format: str = "n8n"
+    format: str = "n8n",
+    current_user: User = Depends(require_auth),
+    db: AsyncSession = Depends(get_db)
 ):
     """Get tickets in specified format."""
-    if reconciliation_id not in reconciliation_results:
+    from uuid import UUID
+    
+    reconciliation_repo = ReconciliationRepository(db)
+    result_repo = ReconciliationResultRepository(db)
+    
+    reconciliation = await reconciliation_repo.get_by_id(
+        UUID(reconciliation_id),
+        user_id=current_user.id
+    )
+    
+    if not reconciliation:
         raise ResourceNotFoundError("Reconciliation", reconciliation_id)
+    
+    result = await result_repo.get_by_reconciliation_id(reconciliation.id)
+    if not result or not result.tickets_json:
+        raise ResourceNotFoundError("Tickets", reconciliation_id)
     
     format_map = {
         "jira": TicketFormat.JIRA,
@@ -557,7 +741,10 @@ async def get_tickets(
             field="format"
         )
     
-    tickets = reconciliation_results[reconciliation_id]["tickets"]
+    # Reconstruct tickets from JSON
+    from reporting.models import Ticket as TicketModel
+    tickets = [TicketModel(**t) for t in result.tickets_json]
+    
     ticket_generator = TicketGenerator()
     ticket_format = format_map[format.lower()]
     
@@ -570,18 +757,44 @@ async def get_tickets(
 
 
 @app.get("/api/reconciliation/{reconciliation_id}")
-async def get_reconciliation(reconciliation_id: str):
+async def get_reconciliation(
+    reconciliation_id: str,
+    current_user: User = Depends(require_auth),
+    db: AsyncSession = Depends(get_db)
+):
     """Get reconciliation details."""
-    if reconciliation_id not in reconciliation_results:
+    from uuid import UUID
+    
+    reconciliation_repo = ReconciliationRepository(db)
+    result_repo = ReconciliationResultRepository(db)
+    
+    reconciliation = await reconciliation_repo.get_by_id(
+        UUID(reconciliation_id),
+        user_id=current_user.id
+    )
+    
+    if not reconciliation:
         raise ResourceNotFoundError("Reconciliation", reconciliation_id)
     
-    data = reconciliation_results[reconciliation_id]
+    result = await result_repo.get_by_reconciliation_id(reconciliation.id)
+    if not result:
+        return {
+            "reconciliation_id": reconciliation_id,
+            "status": reconciliation.status,
+            "report": None,
+            "summary": None
+        }
+    
+    discrepancy_count = len(result.discrepancy_result_json.get("discrepancies", [])) if result.discrepancy_result_json else 0
+    match_count = len(result.match_result_json.get("matches", [])) if result.match_result_json else 0
+    
     return {
         "reconciliation_id": reconciliation_id,
-        "report": data["report"].to_dict(),
+        "status": reconciliation.status,
+        "report": result.report_json,
         "summary": {
-            "matches": len(data["match_result"].matches),
-            "discrepancies": len(data["discrepancy_result"].discrepancies)
+            "matches": match_count,
+            "discrepancies": discrepancy_count
         }
     }
 

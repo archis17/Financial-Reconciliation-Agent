@@ -9,19 +9,32 @@ import {
   AlertCircle, 
   TrendingUp,
   Download,
-  Sparkles,
   ArrowRight,
-  Loader2
+  Loader2,
+  LogOut,
+  User
 } from 'lucide-react';
 import axios from 'axios';
+import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 import ReconciliationResults from '@/components/ReconciliationResults';
 import ProgressIndicator from '@/components/ProgressIndicator';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 type Step = 'upload' | 'processing' | 'results';
 
 export default function Home() {
+  return (
+    <ProtectedRoute>
+      <HomeContent />
+    </ProtectedRoute>
+  );
+}
+
+function HomeContent() {
+  const { user, logout } = useAuth();
   const [step, setStep] = useState<Step>('upload');
   const [bankFile, setBankFile] = useState<File | null>(null);
   const [ledgerFile, setLedgerFile] = useState<File | null>(null);
@@ -59,6 +72,15 @@ export default function Home() {
       formData.append('enable_llm', 'true');
       formData.append('min_severity_for_tickets', 'low');
 
+      // Get auth token
+      const token = localStorage.getItem('access_token');
+      const headers: any = {
+        'Content-Type': 'multipart/form-data',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       // Simulate progress
       const progressInterval = setInterval(() => {
         setProgress(prev => {
@@ -71,9 +93,7 @@ export default function Home() {
       }, 500);
 
       const response = await axios.post(`${API_URL}/api/reconcile`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers,
         timeout: 300000, // 5 minutes
       });
 
@@ -94,46 +114,41 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      {/* Animated background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <TrendingUp className="w-8 h-8 text-blue-600 mr-2" />
+              <h1 className="text-xl font-bold text-gray-900">Financial Reconciliation</h1>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <User className="w-4 h-4" />
+                <span>{user?.email}</span>
+              </div>
+              <button
+                onClick={logout}
+                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
 
-      <div className="relative z-10 container mx-auto px-4 py-8">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-12"
-        >
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="inline-block mb-4"
-          >
-            <Sparkles className="w-16 h-16 text-purple-400" />
-          </motion.div>
-          <h1 className="text-5xl font-bold mb-4">
-            <span className="gradient-text">AI Financial Reconciliation</span>
-          </h1>
-          <p className="text-xl text-gray-300">
-            Automated reconciliation with intelligent matching and AI-powered explanations
-          </p>
-        </motion.div>
-
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Main Content */}
         <AnimatePresence mode="wait">
           {step === 'upload' && (
             <motion.div
               key="upload"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
             >
               <UploadStep
@@ -149,9 +164,9 @@ export default function Home() {
           {step === 'processing' && (
             <motion.div
               key="processing"
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
+              exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.3 }}
             >
               <ProcessingStep progress={progress} />
@@ -180,29 +195,6 @@ export default function Home() {
           )}
         </AnimatePresence>
       </div>
-
-      <style jsx>{`
-        @keyframes blob {
-          0%, 100% {
-            transform: translate(0, 0) scale(1);
-          }
-          33% {
-            transform: translate(30px, -50px) scale(1.1);
-          }
-          66% {
-            transform: translate(-20px, 20px) scale(0.9);
-          }
-        }
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-      `}</style>
     </div>
   );
 }
@@ -222,20 +214,25 @@ function UploadStep({
 }) {
   return (
     <div className="max-w-4xl mx-auto">
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">Upload Files</h2>
+        <p className="text-gray-600">Upload your bank statement and internal ledger to begin reconciliation</p>
+      </div>
+
       <div className="grid md:grid-cols-2 gap-6 mb-8">
         <FileUploadCard
           title="Bank Statement"
           icon={<FileText className="w-8 h-8" />}
           file={bankFile}
           onFileSelect={(file) => onFileSelect('bank', file)}
-          acceptedTypes=".csv,.xlsx"
+          acceptedTypes=".csv"
         />
         <FileUploadCard
           title="Internal Ledger"
           icon={<FileText className="w-8 h-8" />}
           file={ledgerFile}
           onFileSelect={(file) => onFileSelect('ledger', file)}
-          acceptedTypes=".csv,.xlsx"
+          acceptedTypes=".csv"
         />
       </div>
 
@@ -243,7 +240,7 @@ function UploadStep({
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200"
+          className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700"
         >
           <div className="flex items-center gap-2">
             <AlertCircle className="w-5 h-5" />
@@ -253,11 +250,11 @@ function UploadStep({
       )}
 
       <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
         onClick={onReconcile}
         disabled={!bankFile || !ledgerFile}
-        className="w-full py-4 px-8 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        className="w-full py-3 px-6 bg-blue-600 text-white rounded-lg font-semibold text-lg shadow-md hover:bg-blue-700 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         <span>Start Reconciliation</span>
         <ArrowRight className="w-5 h-5" />
@@ -297,18 +294,17 @@ function FileUploadCard({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.02 }}
-      className="glass-dark rounded-2xl p-6 border border-white/10"
+      className="card p-6"
     >
-      <div className="flex items-center gap-3 mb-4 text-white">
-        {icon}
-        <h3 className="text-xl font-semibold">{title}</h3>
+      <div className="flex items-center gap-3 mb-4 text-gray-900">
+        <div className="text-blue-600">{icon}</div>
+        <h3 className="text-lg font-semibold">{title}</h3>
       </div>
 
       <div
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
-        className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center hover:border-purple-400/50 transition-colors cursor-pointer"
+        className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer bg-gray-50"
       >
         <input
           type="file"
@@ -323,21 +319,21 @@ function FileUploadCard({
         >
           {file ? (
             <motion.div
-              initial={{ scale: 0.8 }}
+              initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
               className="space-y-2"
             >
-              <CheckCircle2 className="w-12 h-12 text-green-400 mx-auto" />
-              <p className="text-white font-medium">{file.name}</p>
-              <p className="text-sm text-gray-400">
+              <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto" />
+              <p className="text-gray-900 font-medium">{file.name}</p>
+              <p className="text-sm text-gray-500">
                 {(file.size / 1024).toFixed(2)} KB
               </p>
             </motion.div>
           ) : (
             <div className="space-y-2">
               <Upload className="w-12 h-12 text-gray-400 mx-auto" />
-              <p className="text-white">Drop file here or click to upload</p>
-              <p className="text-sm text-gray-400">CSV or XLSX format</p>
+              <p className="text-gray-700">Drop file here or click to upload</p>
+              <p className="text-sm text-gray-500">CSV format</p>
             </div>
           )}
         </label>
@@ -348,7 +344,7 @@ function FileUploadCard({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           onClick={() => onFileSelect(null)}
-          className="mt-4 text-sm text-red-400 hover:text-red-300"
+          className="mt-4 text-sm text-red-600 hover:text-red-700"
         >
           Remove file
         </motion.button>
@@ -366,13 +362,13 @@ function ProcessingStep({ progress }: { progress: number }) {
         transition={{ type: "spring", stiffness: 200 }}
         className="mb-8"
       >
-        <Loader2 className="w-20 h-20 text-purple-400 mx-auto animate-spin" />
+        <Loader2 className="w-16 h-16 text-blue-600 mx-auto animate-spin" />
       </motion.div>
 
-      <h2 className="text-3xl font-bold text-white mb-4">
+      <h2 className="text-3xl font-bold text-gray-900 mb-4">
         Processing Reconciliation
       </h2>
-      <p className="text-gray-300 mb-8">
+      <p className="text-gray-600 mb-8">
         Analyzing transactions, matching records, and detecting discrepancies...
       </p>
 
@@ -385,10 +381,10 @@ function ProcessingStep({ progress }: { progress: number }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.2 }}
-            className="glass-dark rounded-lg p-4"
+            className="card p-4"
           >
-            <div className="text-purple-400 font-semibold mb-2">{step}</div>
-            <div className="text-sm text-gray-400">In progress...</div>
+            <div className="text-blue-600 font-semibold mb-2">{step}</div>
+            <div className="text-sm text-gray-500">In progress...</div>
           </motion.div>
         ))}
       </div>
