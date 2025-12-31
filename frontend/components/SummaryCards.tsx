@@ -11,15 +11,15 @@ export default function SummaryCards({ summary }: { summary: any }) {
       icon: CheckCircle2,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
-      borderColor: 'border-green-200',
+      borderColor: 'border-green-100',
     },
     {
       title: 'Unmatched (Bank)',
       value: summary.unmatched_bank || 0,
       icon: FileX,
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-50',
-      borderColor: 'border-yellow-200',
+      color: 'text-amber-600',
+      bgColor: 'bg-amber-50',
+      borderColor: 'border-amber-100',
     },
     {
       title: 'Unmatched (Ledger)',
@@ -27,7 +27,7 @@ export default function SummaryCards({ summary }: { summary: any }) {
       icon: FileX,
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
-      borderColor: 'border-orange-200',
+      borderColor: 'border-orange-100',
     },
     {
       title: 'Discrepancies',
@@ -35,7 +35,7 @@ export default function SummaryCards({ summary }: { summary: any }) {
       icon: AlertCircle,
       color: 'text-red-600',
       bgColor: 'bg-red-50',
-      borderColor: 'border-red-200',
+      borderColor: 'border-red-100',
     },
   ];
 
@@ -47,16 +47,16 @@ export default function SummaryCards({ summary }: { summary: any }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1 }}
-          whileHover={{ scale: 1.02, y: -2 }}
-          className={`card p-6 border-2 ${card.borderColor} hover:shadow-lg transition-all`}
+          whileHover={{ scale: 1.01, y: -1 }}
+          className={`card p-6 border ${card.borderColor} hover:shadow-md transition-all bg-white`}
         >
           <div className="flex items-center justify-between mb-4">
             <div className={`p-3 rounded-lg ${card.bgColor}`}>
               <card.icon className={`w-6 h-6 ${card.color}`} />
             </div>
           </div>
-          <div className="text-3xl font-bold text-gray-900 mb-1">{card.value}</div>
-          <div className="text-sm text-gray-600">{card.title}</div>
+          <div className="text-3xl font-semibold text-slate-900 mb-1">{card.value}</div>
+          <div className="text-sm text-slate-600 font-medium">{card.title}</div>
         </motion.div>
       ))}
     </div>

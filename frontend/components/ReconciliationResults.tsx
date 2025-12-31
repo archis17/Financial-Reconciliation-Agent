@@ -66,18 +66,18 @@ export default function ReconciliationResults({
         className="flex items-center justify-between"
       >
         <div>
-          <h2 className="text-4xl font-bold text-gray-900 mb-2">
+          <h2 className="text-4xl font-semibold text-slate-900 mb-2">
             Reconciliation Complete
           </h2>
-          <p className="text-gray-600">
+          <p className="text-slate-600">
             ID: {reconciliationId.substring(0, 8)}...
           </p>
         </div>
         <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
           onClick={onReset}
-          className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg flex items-center gap-2 transition-colors"
+          className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-900 rounded-lg flex items-center gap-2 transition-colors font-medium"
         >
           <RefreshCw className="w-5 h-5" />
           New Reconciliation
@@ -91,8 +91,8 @@ export default function ReconciliationResults({
       <Charts summary={results.summary} />
 
       {/* Tabs */}
-      <div className="card p-6">
-        <div className="flex gap-4 mb-6 border-b border-gray-200">
+      <div className="card p-6 bg-white">
+        <div className="flex gap-4 mb-6 border-b border-slate-200">
           {[
             { id: 'summary', label: 'Summary', icon: BarChart3 },
             { id: 'discrepancies', label: 'Discrepancies', icon: AlertTriangle },
@@ -101,10 +101,10 @@ export default function ReconciliationResults({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 px-4 py-2 border-b-2 transition-colors ${
+              className={`flex items-center gap-2 px-4 py-2 border-b-2 transition-colors font-medium ${
                 activeTab === tab.id
                   ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
+                  : 'border-transparent text-slate-600 hover:text-slate-900'
               }`}
             >
               <tab.icon className="w-5 h-5" />

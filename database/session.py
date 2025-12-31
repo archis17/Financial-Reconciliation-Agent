@@ -86,7 +86,11 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as session:
         try:
             yield session
-            await session.commit()
+            # Only commit if session is still in a transaction
+            # This allows explicit commits in endpoints while still auto-committing
+            # if no explicit commit was made
+            if session.in_transaction():
+                await session.commit()
         except Exception:
             await session.rollback()
             raise

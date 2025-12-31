@@ -8,7 +8,7 @@ export default function DiscrepancyList({ tickets }: { tickets: any[] }) {
     return (
       <div className="text-center py-12">
         <CheckCircle2 className="w-16 h-16 text-green-600 mx-auto mb-4" />
-        <p className="text-gray-600">No discrepancies found. All transactions matched successfully!</p>
+        <p className="text-slate-600">No discrepancies found. All transactions matched successfully!</p>
       </div>
     );
   }
@@ -67,15 +67,15 @@ export default function DiscrepancyList({ tickets }: { tickets: any[] }) {
               
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-gray-900 font-semibold text-lg">
+                  <h4 className="text-slate-900 font-medium text-lg">
                     {ticketData.title || ticket.fields?.summary || 'Untitled'}
                   </h4>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${style.badge}`}>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${style.badge}`}>
                     {severity.toUpperCase()}
                   </span>
                 </div>
                 
-                <p className="text-gray-700 mb-4">
+                <p className="text-slate-700 mb-4">
                   {ticketData.description || ticket.fields?.description || ticketData.machine_reason || 'No description available'}
                 </p>
 

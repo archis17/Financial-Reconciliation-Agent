@@ -114,23 +114,23 @@ function HomeContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <TrendingUp className="w-8 h-8 text-blue-600 mr-2" />
-              <h1 className="text-xl font-bold text-gray-900">Financial Reconciliation</h1>
+              <TrendingUp className="w-7 h-7 text-blue-600 mr-2" />
+              <h1 className="text-xl font-semibold text-slate-900">Financial Reconciliation</h1>
             </div>
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="flex items-center gap-2 text-sm text-slate-600">
                 <User className="w-4 h-4" />
-                <span>{user?.email}</span>
+                <span className="font-medium">{user?.email}</span>
               </div>
               <button
                 onClick={logout}
-                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors"
               >
                 <LogOut className="w-4 h-4" />
                 Logout
@@ -140,7 +140,7 @@ function HomeContent() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Main Content */}
         <AnimatePresence mode="wait">
           {step === 'upload' && (
@@ -214,9 +214,9 @@ function UploadStep({
 }) {
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Upload Files</h2>
-        <p className="text-gray-600">Upload your bank statement and internal ledger to begin reconciliation</p>
+      <div className="text-center mb-10">
+        <h2 className="text-3xl font-semibold text-slate-900 mb-2">Upload Files</h2>
+        <p className="text-slate-600">Upload your bank statement and internal ledger to begin reconciliation</p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6 mb-8">
@@ -250,11 +250,11 @@ function UploadStep({
       )}
 
       <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
         onClick={onReconcile}
         disabled={!bankFile || !ledgerFile}
-        className="w-full py-3 px-6 bg-blue-600 text-white rounded-lg font-semibold text-lg shadow-md hover:bg-blue-700 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        className="w-full py-3.5 px-6 bg-blue-600 text-white rounded-lg font-medium text-base shadow-sm hover:bg-blue-700 hover:shadow transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         <span>Start Reconciliation</span>
         <ArrowRight className="w-5 h-5" />
@@ -296,15 +296,15 @@ function FileUploadCard({
       animate={{ opacity: 1, y: 0 }}
       className="card p-6"
     >
-      <div className="flex items-center gap-3 mb-4 text-gray-900">
+      <div className="flex items-center gap-3 mb-4 text-slate-900">
         <div className="text-blue-600">{icon}</div>
-        <h3 className="text-lg font-semibold">{title}</h3>
+        <h3 className="text-lg font-medium">{title}</h3>
       </div>
 
       <div
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
-        className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer bg-gray-50"
+        className="border-2 border-dashed border-slate-200 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer bg-slate-50"
       >
         <input
           type="file"
@@ -324,16 +324,16 @@ function FileUploadCard({
               className="space-y-2"
             >
               <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto" />
-              <p className="text-gray-900 font-medium">{file.name}</p>
-              <p className="text-sm text-gray-500">
+              <p className="text-slate-900 font-medium">{file.name}</p>
+              <p className="text-sm text-slate-500">
                 {(file.size / 1024).toFixed(2)} KB
               </p>
             </motion.div>
           ) : (
             <div className="space-y-2">
-              <Upload className="w-12 h-12 text-gray-400 mx-auto" />
-              <p className="text-gray-700">Drop file here or click to upload</p>
-              <p className="text-sm text-gray-500">CSV format</p>
+              <Upload className="w-12 h-12 text-slate-400 mx-auto" />
+              <p className="text-slate-700">Drop file here or click to upload</p>
+              <p className="text-sm text-slate-500">CSV format</p>
             </div>
           )}
         </label>
@@ -365,10 +365,10 @@ function ProcessingStep({ progress }: { progress: number }) {
         <Loader2 className="w-16 h-16 text-blue-600 mx-auto animate-spin" />
       </motion.div>
 
-      <h2 className="text-3xl font-bold text-gray-900 mb-4">
+      <h2 className="text-3xl font-semibold text-slate-900 mb-4">
         Processing Reconciliation
       </h2>
-      <p className="text-gray-600 mb-8">
+      <p className="text-slate-600 mb-8">
         Analyzing transactions, matching records, and detecting discrepancies...
       </p>
 
@@ -383,8 +383,8 @@ function ProcessingStep({ progress }: { progress: number }) {
             transition={{ delay: i * 0.2 }}
             className="card p-4"
           >
-            <div className="text-blue-600 font-semibold mb-2">{step}</div>
-            <div className="text-sm text-gray-500">In progress...</div>
+            <div className="text-blue-600 font-medium mb-2">{step}</div>
+            <div className="text-sm text-slate-500">In progress...</div>
           </motion.div>
         ))}
       </div>

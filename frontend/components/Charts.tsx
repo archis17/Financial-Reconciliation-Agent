@@ -23,7 +23,7 @@ export default function Charts({ summary }: { summary: any }) {
         animate={{ opacity: 1, scale: 1 }}
         className="card p-6"
       >
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">Match Distribution</h3>
+        <h3 className="text-xl font-medium text-slate-900 mb-4">Match Distribution</h3>
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie
@@ -51,16 +51,16 @@ export default function Charts({ summary }: { summary: any }) {
         transition={{ delay: 0.2 }}
         className="card p-6"
       >
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">Reconciliation Overview</h3>
+        <h3 className="text-xl font-medium text-slate-900 mb-4">Reconciliation Overview</h3>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={barData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis dataKey="name" stroke="#6b7280" />
-            <YAxis stroke="#6b7280" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+            <XAxis dataKey="name" stroke="#64748b" />
+            <YAxis stroke="#64748b" />
             <Tooltip
               contentStyle={{
                 backgroundColor: '#ffffff',
-                border: '1px solid #e5e7eb',
+                border: '1px solid #e2e8f0',
                 borderRadius: '8px',
               }}
             />

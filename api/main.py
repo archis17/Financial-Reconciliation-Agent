@@ -363,8 +363,19 @@ async def reconcile(
             min_severity_for_tickets=min_severity_for_tickets
         )
         
-        # Update reconciliation with file paths
-        await reconciliation_repo.update_status(reconciliation.id, "processing")
+        # Update reconciliation with file paths and status
+        from sqlalchemy import update as sql_update
+        from database.models import Reconciliation as ReconciliationModel
+        await db.execute(
+            sql_update(ReconciliationModel)
+            .where(ReconciliationModel.id == reconciliation.id)
+            .values(
+                bank_file_path=str(bank_filepath),
+                ledger_file_path=str(ledger_filepath),
+                status="processing"
+            )
+        )
+        await db.flush()
         
         # 1. Ingest
         try:
@@ -562,6 +573,8 @@ async def reconcile(
             metadata_json={"processing_time": processing_time}
         )
         
+        # Commit all changes - get_db() will also commit, but we commit here to ensure data is saved
+        # even if there's an error after this point
         await db.commit()
         
         # Record metrics
