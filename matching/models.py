@@ -41,19 +41,20 @@ class Match:
     
     def to_dict(self) -> dict:
         """Convert to dictionary for serialization."""
+        # Convert all float values to Python float (not numpy float32) for JSON serialization
         return {
             "bank_transaction_id": self.bank_transaction_id,
             "ledger_transaction_id": self.ledger_transaction_id,
-            "confidence": self.confidence,
+            "confidence": float(self.confidence),
             "match_type": self.match_type.value,
             "amount_difference": str(self.amount_difference),
             "date_difference_days": self.date_difference_days,
-            "description_similarity": self.description_similarity,
+            "description_similarity": float(self.description_similarity),
             "reference_match": self.reference_match,
-            "amount_score": self.amount_score,
-            "date_score": self.date_score,
-            "description_score": self.description_score,
-            "reference_score": self.reference_score,
+            "amount_score": float(self.amount_score),
+            "date_score": float(self.date_score),
+            "description_score": float(self.description_score),
+            "reference_score": float(self.reference_score),
         }
 
 

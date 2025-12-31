@@ -35,14 +35,47 @@ async def get_current_user(
         HTTPException: If token is invalid or user not found
     """
     token = credentials.credentials
-    token_data = decode_token(token)
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token not provided",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    try:
+        token_data = decode_token(token)
+    except HTTPException:
+        raise
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error decoding token: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     
     user_repo = UserRepository(db)
     # Handle both UUID (PostgreSQL) and string (SQLite) user IDs
-    user_id: Union[UUID, str] = token_data.user_id if IS_SQLITE else UUID(token_data.user_id)
+    try:
+        user_id: Union[UUID, str] = token_data.user_id if IS_SQLITE else UUID(token_data.user_id)
+    except ValueError as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Invalid user_id format: {token_data.user_id}, error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid user ID in token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
     user = await user_repo.get_by_id(user_id)
     
     if user is None:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning(f"User not found for ID: {user_id} (type: {type(user_id)})")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found",

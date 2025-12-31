@@ -51,7 +51,7 @@ class RuleBasedMatcher:
         if difference <= self.config.amount_tolerance:
             # Score decreases linearly within tolerance
             score = 1.0 - (float(difference) / float(self.config.amount_tolerance))
-            return (max(0.0, score), difference)
+            return (float(max(0.0, score)), difference)  # Convert to Python float
         
         # Check percentage tolerance
         avg_amount = (bank_amount + ledger_amount) / 2
@@ -60,10 +60,10 @@ class RuleBasedMatcher:
             if percent_diff <= self.config.amount_tolerance_percent:
                 # Score based on percentage
                 score = 1.0 - (percent_diff / self.config.amount_tolerance_percent)
-                return (max(0.0, score), difference)
+                return (float(max(0.0, score)), difference)  # Convert to Python float
         
         # Outside tolerance
-        return (0.0, difference)
+        return (0.0, difference)  # Already Python float
     
     def calculate_date_score(
         self,
@@ -81,16 +81,16 @@ class RuleBasedMatcher:
         
         # Exact match
         if difference_days == 0:
-            return (1.0, difference_days)
+            return (1.0, difference_days)  # Already Python float
         
         # Within window
         if difference_days <= self.config.date_window_days:
             # Score decreases linearly within window
             score = 1.0 - (difference_days / self.config.date_window_days)
-            return (max(0.0, score), difference_days)
+            return (float(max(0.0, score)), difference_days)  # Convert to Python float
         
         # Outside window
-        return (0.0, difference_days)
+        return (0.0, difference_days)  # Already Python float
     
     def calculate_reference_score(
         self,

@@ -161,7 +161,7 @@ async def health():
     # Check file system
     try:
         upload_dir = Path("uploads")
-        upload_dir.mkdir(exist_ok=True)
+        upload_dir.mkdir(exist_ok=True, mode=0o775)
         test_file = upload_dir / ".health_check"
         test_file.write_text("test")
         test_file.unlink()
@@ -197,7 +197,7 @@ async def ingest_bank_statement(file: UploadFile = File(...)):
         
         # Save uploaded file temporarily
         upload_dir = Path("uploads")
-        upload_dir.mkdir(exist_ok=True)
+        upload_dir.mkdir(exist_ok=True, mode=0o775)
         
         filepath = upload_dir / f"bank_{uuid.uuid4()}_{file.filename}"
         with open(filepath, "wb") as f:
@@ -246,7 +246,7 @@ async def ingest_ledger(file: UploadFile = File(...)):
             )
         
         upload_dir = Path("uploads")
-        upload_dir.mkdir(exist_ok=True)
+        upload_dir.mkdir(exist_ok=True, mode=0o775)
         
         filepath = upload_dir / f"ledger_{uuid.uuid4()}_{file.filename}"
         with open(filepath, "wb") as f:
@@ -329,7 +329,15 @@ async def reconcile(
     try:
         # Save uploaded files with size validation
         upload_dir = Path("uploads")
-        upload_dir.mkdir(exist_ok=True)
+        upload_dir.mkdir(exist_ok=True, mode=0o775)
+        
+        # Try to fix permissions if directory exists but isn't writable
+        if upload_dir.exists() and not os.access(upload_dir, os.W_OK):
+            try:
+                import stat
+                upload_dir.chmod(stat.S_IRWXU | stat.S_IRWXG | stat.S_IROTH | stat.S_IXOTH)  # 775
+            except PermissionError:
+                logger.warning(f"Cannot set permissions on {upload_dir}. Please run: sudo chown -R $USER:$USER {upload_dir.absolute()}")
         
         bank_filepath = upload_dir / f"bank_{reconciliation.id}_{bank_file.filename}"
         ledger_filepath = upload_dir / f"ledger_{reconciliation.id}_{ledger_file.filename}"
@@ -348,11 +356,16 @@ async def reconcile(
                 field="ledger_file"
             )
         
-        with open(bank_filepath, "wb") as f:
-            f.write(bank_content)
-        
-        with open(ledger_filepath, "wb") as f:
-            f.write(ledger_content)
+        try:
+            with open(bank_filepath, "wb") as f:
+                f.write(bank_content)
+            
+            with open(ledger_filepath, "wb") as f:
+                f.write(ledger_content)
+        except PermissionError as e:
+            raise ServiceUnavailableError(
+                f"Cannot write to uploads directory. Please fix permissions: sudo chown -R $USER:$USER {upload_dir.absolute()}"
+            ) from e
         
         # Create config from parameters
         config = ReconciliationRequest(
@@ -522,15 +535,15 @@ async def reconcile(
         match_result_dict = {
             "matches": [
                 {
-                    "bank_id": m.bank_transaction.id,
-                    "ledger_id": m.ledger_transaction.id,
+                    "bank_id": m.bank_transaction_id,
+                    "ledger_id": m.ledger_transaction_id,
                     "match_type": m.match_type.value,
                     "confidence": m.confidence
                 }
                 for m in match_result.matches
             ],
-            "unmatched_bank": [tx.id for tx in match_result.unmatched_bank],
-            "unmatched_ledger": [tx.id for tx in match_result.unmatched_ledger]
+            "unmatched_bank": match_result.unmatched_bank,  # Already a list of IDs
+            "unmatched_ledger": match_result.unmatched_ledger  # Already a list of IDs
         }
         
         discrepancy_result_dict = {
@@ -539,9 +552,9 @@ async def reconcile(
                     "type": d.discrepancy_type.value,
                     "severity": d.severity.value,
                     "description": d.description,
-                    "bank_transaction_id": d.bank_transaction.id if d.bank_transaction else None,
-                    "ledger_transaction_id": d.ledger_transaction.id if d.ledger_transaction else None,
-                    "explanation": d.explanation
+                    "transaction_id": d.transaction_id,
+                    "related_transaction_id": d.related_transaction_id,
+                    "explanation": d.llm_explanation  # Use llm_explanation instead of explanation
                 }
                 for d in discrepancy_result.discrepancies
             ]

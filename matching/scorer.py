@@ -74,8 +74,8 @@ class ConfidenceScorer:
         if reference_match:
             base_confidence += self.reference_bonus
         
-        # Clamp to [0.0, 1.0]
-        return max(0.0, min(1.0, base_confidence))
+        # Clamp to [0.0, 1.0] and convert to Python float (not numpy float32)
+        return float(max(0.0, min(1.0, base_confidence)))
     
     def determine_match_type(
         self,

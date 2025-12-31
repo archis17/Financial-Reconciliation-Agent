@@ -143,7 +143,7 @@ async def login(
 
 @router.post("/refresh", response_model=Token)
 async def refresh_token(
-    refresh_token: str,
+    refresh_token: str = Form(...),
     db: AsyncSession = Depends(get_db)
 ):
     """
@@ -163,7 +163,12 @@ async def refresh_token(
         token_data = decode_refresh_token(refresh_token)
         
         user_repo = UserRepository(db)
-        user = await user_repo.get_by_id(token_data.user_id)
+        # Handle both UUID (PostgreSQL) and string (SQLite) user IDs
+        from database.session import IS_SQLITE
+        from typing import Union
+        from uuid import UUID
+        user_id: Union[UUID, str] = token_data.user_id if IS_SQLITE else UUID(token_data.user_id)
+        user = await user_repo.get_by_id(user_id)
         
         if not user or not user.is_active:
             raise HTTPException(
