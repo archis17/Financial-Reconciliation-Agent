@@ -6,13 +6,32 @@ from datetime import datetime
 from typing import Optional
 import json
 
-from sqlalchemy import Column, String, Integer, Boolean, DateTime, ForeignKey, Text, Float
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import Column, String, Integer, Boolean, DateTime, ForeignKey, Text, Float, JSON
+from sqlalchemy.dialects.postgresql import UUID as PostgresUUID, JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import uuid
+import os
 
-from .session import Base
+from .session import Base, IS_SQLITE
+
+# Use database-agnostic types
+# For PostgreSQL, use native UUID and JSONB
+# For SQLite, use String for UUID and JSON for JSONB
+if IS_SQLITE:
+    # SQLite doesn't support UUID natively, use String
+    UUID = String(36)  # UUID as string
+    JSON_TYPE = JSON  # SQLite 3.9+ supports JSON
+    
+    def uuid_default():
+        return str(uuid.uuid4())
+else:
+    # PostgreSQL supports native UUID and JSONB
+    UUID = PostgresUUID(as_uuid=True)
+    JSON_TYPE = JSONB
+    
+    def uuid_default():
+        return uuid.uuid4()
 
 
 class User(Base):
@@ -20,7 +39,7 @@ class User(Base):
     
     __tablename__ = "users"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(UUID, primary_key=True, default=uuid_default)
     email = Column(String(255), unique=True, nullable=False, index=True)
     hashed_password = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
@@ -40,12 +59,12 @@ class Reconciliation(Base):
     
     __tablename__ = "reconciliations"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    id = Column(UUID, primary_key=True, default=uuid_default)
+    user_id = Column(UUID, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     status = Column(String(50), nullable=False, default="pending", index=True)  # pending, processing, completed, failed
     bank_file_path = Column(String(500), nullable=True)
     ledger_file_path = Column(String(500), nullable=True)
-    config_json = Column(JSONB, nullable=True)  # Store reconciliation config as JSON
+    config_json = Column(JSON_TYPE, nullable=True)  # Store reconciliation config as JSON
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
     completed_at = Column(DateTime(timezone=True), nullable=True)
     
@@ -62,12 +81,12 @@ class ReconciliationResult(Base):
     
     __tablename__ = "reconciliation_results"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    reconciliation_id = Column(UUID(as_uuid=True), ForeignKey("reconciliations.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
-    report_json = Column(JSONB, nullable=False)  # ReconciliationReport as JSON
-    match_result_json = Column(JSONB, nullable=True)  # MatchResult as JSON
-    discrepancy_result_json = Column(JSONB, nullable=True)  # DiscrepancyResult as JSON
-    tickets_json = Column(JSONB, nullable=True)  # List of tickets as JSON
+    id = Column(UUID, primary_key=True, default=uuid_default)
+    reconciliation_id = Column(UUID, ForeignKey("reconciliations.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
+    report_json = Column(JSON_TYPE, nullable=False)  # ReconciliationReport as JSON
+    match_result_json = Column(JSON_TYPE, nullable=True)  # MatchResult as JSON
+    discrepancy_result_json = Column(JSON_TYPE, nullable=True)  # DiscrepancyResult as JSON
+    tickets_json = Column(JSON_TYPE, nullable=True)  # List of tickets as JSON
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     
     # Relationships
@@ -82,12 +101,12 @@ class AuditLog(Base):
     
     __tablename__ = "audit_logs"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)  # Nullable for system actions
+    id = Column(UUID, primary_key=True, default=uuid_default)
+    user_id = Column(UUID, ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)  # Nullable for system actions
     action = Column(String(100), nullable=False, index=True)  # e.g., "reconciliation_created", "user_login", "file_uploaded"
     resource_type = Column(String(100), nullable=True)  # e.g., "reconciliation", "user", "file"
     resource_id = Column(String(255), nullable=True)  # ID of the resource
-    metadata_json = Column(JSONB, nullable=True)  # Additional metadata as JSON
+    metadata_json = Column(JSON_TYPE, nullable=True)  # Additional metadata as JSON
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
     
     # Relationships

@@ -2,6 +2,7 @@
 Custom middleware for the API.
 """
 
+import os
 import time
 import logging
 from typing import Callable
@@ -12,6 +13,20 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from .exceptions import ReconciliationException, RateLimitError
 
 logger = logging.getLogger(__name__)
+
+# Get CORS origins for error responses
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+
+
+def add_cors_headers(response: Response, request: Request) -> Response:
+    """Add CORS headers to a response."""
+    origin = request.headers.get("origin")
+    if origin and origin in CORS_ORIGINS:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+    elif "*" in CORS_ORIGINS:
+        response.headers["Access-Control-Allow-Origin"] = "*"
+    return response
 
 
 class ErrorHandlingMiddleware(BaseHTTPMiddleware):
@@ -28,23 +43,28 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 "status_code": e.status_code,
                 "details": e.details
             })
-            return JSONResponse(
+            response = JSONResponse(
                 status_code=e.status_code,
                 content=e.to_dict()
             )
+            return add_cors_headers(response, request)
         except HTTPException as e:
             # Re-raise HTTPException as-is
             raise e
         except Exception as e:
-            logger.error(f"Unexpected error: {str(e)}", exc_info=True)
-            return JSONResponse(
+            error_message = str(e)
+            logger.error(f"Unexpected error: {error_message}", exc_info=True)
+            response = JSONResponse(
                 status_code=500,
                 content={
                     "error": "INTERNAL_SERVER_ERROR",
                     "message": "An unexpected error occurred",
-                    "details": {}
+                    "details": {
+                        "error": error_message
+                    }
                 }
             )
+            return add_cors_headers(response, request)
 
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):

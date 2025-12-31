@@ -2,7 +2,7 @@
 Repository pattern for database operations.
 """
 
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Union
 from uuid import UUID
 from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,6 +10,10 @@ from sqlalchemy import select, update, delete, func, and_
 from sqlalchemy.orm import selectinload
 
 from .models import User, Reconciliation, ReconciliationResult, AuditLog
+from .session import IS_SQLITE
+
+# Type alias for ID - UUID for PostgreSQL, str for SQLite
+IDType = Union[UUID, str] if IS_SQLITE else UUID
 
 
 class UserRepository:
@@ -25,7 +29,7 @@ class UserRepository:
         await self.session.flush()
         return user
     
-    async def get_by_id(self, user_id: UUID) -> Optional[User]:
+    async def get_by_id(self, user_id: IDType) -> Optional[User]:
         """Get user by ID."""
         result = await self.session.execute(
             select(User).where(User.id == user_id)
@@ -54,7 +58,7 @@ class ReconciliationRepository:
     
     async def create(
         self,
-        user_id: UUID,
+        user_id: IDType,
         bank_file_path: Optional[str] = None,
         ledger_file_path: Optional[str] = None,
         config_json: Optional[Dict[str, Any]] = None,
@@ -83,7 +87,7 @@ class ReconciliationRepository:
     
     async def get_by_user(
         self,
-        user_id: UUID,
+        user_id: IDType,
         limit: int = 100,
         offset: int = 0,
         status: Optional[str] = None
@@ -133,7 +137,7 @@ class ReconciliationResultRepository:
     
     async def create(
         self,
-        reconciliation_id: UUID,
+        reconciliation_id: IDType,
         report_json: Dict[str, Any],
         match_result_json: Optional[Dict[str, Any]] = None,
         discrepancy_result_json: Optional[Dict[str, Any]] = None,
@@ -162,7 +166,7 @@ class ReconciliationResultRepository:
     
     async def update(
         self,
-        reconciliation_id: UUID,
+        reconciliation_id: IDType,
         report_json: Optional[Dict[str, Any]] = None,
         match_result_json: Optional[Dict[str, Any]] = None,
         discrepancy_result_json: Optional[Dict[str, Any]] = None,
@@ -200,7 +204,7 @@ class AuditLogRepository:
     async def create(
         self,
         action: str,
-        user_id: Optional[UUID] = None,
+        user_id: Optional[IDType] = None,
         resource_type: Optional[str] = None,
         resource_id: Optional[str] = None,
         metadata_json: Optional[Dict[str, Any]] = None
@@ -219,7 +223,7 @@ class AuditLogRepository:
     
     async def get_by_user(
         self,
-        user_id: UUID,
+        user_id: IDType,
         limit: int = 100,
         offset: int = 0
     ) -> List[AuditLog]:

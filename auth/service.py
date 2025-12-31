@@ -9,13 +9,20 @@ from uuid import UUID
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+import bcrypt
 from fastapi import HTTPException, status
 
 from database.models import User
 from .models import TokenData
 
 # Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Use bcrypt with proper configuration for bcrypt 5.x
+# Note: bcrypt 5.x enforces 72-byte limit strictly
+pwd_context = CryptContext(
+    schemes=["bcrypt"],
+    deprecated="auto",
+    bcrypt__rounds=12
+)
 
 # JWT Configuration
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production")
@@ -26,12 +33,36 @@ JWT_REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("JWT_REFRESH_TOKEN_EXPIRE_DAYS", "
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against a hash."""
-    return pwd_context.verify(plain_password, hashed_password)
+    # Use bcrypt directly for verification
+    if isinstance(plain_password, str):
+        plain_password_bytes = plain_password.encode('utf-8')
+    else:
+        plain_password_bytes = plain_password
+    
+    # Truncate if needed
+    if len(plain_password_bytes) > 72:
+        plain_password_bytes = plain_password_bytes[:72]
+    
+    hashed_bytes = hashed_password.encode('utf-8')
+    return bcrypt.checkpw(plain_password_bytes, hashed_bytes)
 
 
 def get_password_hash(password: str) -> str:
-    """Hash a password."""
-    return pwd_context.hash(password)
+    """Hash a password using bcrypt directly to avoid passlib/bcrypt 5.x issues."""
+    # Ensure password is bytes
+    if isinstance(password, str):
+        password_bytes = password.encode('utf-8')
+    else:
+        password_bytes = password
+    
+    # Bcrypt 5.x enforces 72-byte limit strictly
+    if len(password_bytes) > 72:
+        password_bytes = password_bytes[:72]
+    
+    # Hash using bcrypt directly
+    salt = bcrypt.gensalt(rounds=12)
+    hashed = bcrypt.hashpw(password_bytes, salt)
+    return hashed.decode('utf-8')
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:

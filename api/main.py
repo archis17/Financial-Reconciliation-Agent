@@ -76,13 +76,7 @@ def create_app() -> FastAPI:
         redoc_url="/api/redoc"
     )
     
-    # Add custom middleware (order matters - first added is last executed)
-    app.add_middleware(MetricsMiddleware)
-    app.add_middleware(ErrorHandlingMiddleware)
-    app.add_middleware(RequestLoggingMiddleware)
-    app.add_middleware(RateLimitMiddleware, requests_per_minute=RATE_LIMIT_PER_MINUTE)
-    
-    # CORS middleware
+    # CORS middleware (must be added first to handle preflight requests)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=CORS_ORIGINS,
@@ -90,6 +84,12 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    
+    # Add custom middleware (order matters - first added is last executed)
+    app.add_middleware(MetricsMiddleware)
+    app.add_middleware(ErrorHandlingMiddleware)
+    app.add_middleware(RequestLoggingMiddleware)
+    app.add_middleware(RateLimitMiddleware, requests_per_minute=RATE_LIMIT_PER_MINUTE)
     
     # Include routers
     app.include_router(auth_router)
