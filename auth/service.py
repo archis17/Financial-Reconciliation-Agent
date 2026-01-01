@@ -15,6 +15,9 @@ from fastapi import HTTPException, status
 from database.models import User
 from .models import TokenData
 
+import logging
+logger = logging.getLogger(__name__)
+
 # Password hashing context
 # Use bcrypt with proper configuration for bcrypt 5.x
 # Note: bcrypt 5.x enforces 72-byte limit strictly
@@ -95,6 +98,9 @@ def decode_token(token: str) -> TokenData:
         headers={"WWW-Authenticate": "Bearer"},
     )
     
+    if not token:
+        raise credentials_exception
+    
     try:
         payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
         user_id: str = payload.get("sub")
@@ -107,11 +113,22 @@ def decode_token(token: str) -> TokenData:
         if token_type != "access":
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token type"
+                detail="Invalid token type. Expected 'access' token.",
+                headers={"WWW-Authenticate": "Bearer"},
             )
         
         return TokenData(user_id=user_id, email=email)
-    except JWTError:
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except jwt.InvalidTokenError as e:
+        logger.warning(f"Invalid token: {str(e)}")
+        raise credentials_exception
+    except JWTError as e:
+        logger.warning(f"JWT error: {str(e)}")
         raise credentials_exception
 
 

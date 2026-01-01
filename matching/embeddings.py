@@ -78,7 +78,8 @@ class EmbeddingMatcher:
         similarity = np.dot(emb1, emb2) / (np.linalg.norm(emb1) * np.linalg.norm(emb2))
         
         # Normalize to 0-1 range (cosine similarity is already -1 to 1)
-        return (similarity + 1.0) / 2.0
+        # Convert numpy float32 to Python float for JSON serialization
+        return float((similarity + 1.0) / 2.0)
     
     def build_index(self, transactions: List[Transaction]) -> faiss.Index:
         """

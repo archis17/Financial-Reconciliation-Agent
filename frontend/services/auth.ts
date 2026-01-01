@@ -98,6 +98,11 @@ class AuthService {
   }
 
   async getCurrentUser(): Promise<User> {
+    const token = this.getAccessToken();
+    if (!token) {
+      throw new Error('No access token available');
+    }
+
     const response = await fetch(`${API_URL}/api/auth/me`, {
       method: 'GET',
       headers: this.getAuthHeaders(),
@@ -105,9 +110,28 @@ class AuthService {
 
     if (!response.ok) {
       if (response.status === 401) {
-        this.clearTokens();
+        // Try to refresh token if we have a refresh token
+        const refreshToken = localStorage.getItem('refresh_token');
+        if (refreshToken) {
+          try {
+            await this.refreshToken();
+            // Retry the request with new token
+            const retryResponse = await fetch(`${API_URL}/api/auth/me`, {
+              method: 'GET',
+              headers: this.getAuthHeaders(),
+            });
+            if (retryResponse.ok) {
+              return retryResponse.json();
+            }
+          } catch (refreshError) {
+            // Refresh failed, clear tokens
+            this.clearTokens();
+          }
+        } else {
+          this.clearTokens();
+        }
       }
-      const error = await response.json();
+      const error = await response.json().catch(() => ({ detail: 'Failed to get user' }));
       throw new Error(error.detail || 'Failed to get user');
     }
 
@@ -120,12 +144,15 @@ class AuthService {
       throw new Error('No refresh token available');
     }
 
+    const formData = new URLSearchParams();
+    formData.append('refresh_token', refreshToken);
+
     const response = await fetch(`${API_URL}/api/auth/refresh`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: JSON.stringify({ refresh_token: refreshToken }),
+      body: formData.toString(),
     });
 
     if (!response.ok) {

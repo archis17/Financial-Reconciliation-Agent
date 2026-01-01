@@ -45,3 +45,7 @@ Thumbs.db
 test_data/*.csv
 test_data/*.json
 !test_data/.gitkeep
+
+uploads/
+
+reports/

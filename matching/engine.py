@@ -126,16 +126,16 @@ class MatchingEngine:
                 match = Match(
                     bank_transaction_id=bank_tx.id,
                     ledger_transaction_id=best_match["ledger_tx"].id,
-                    confidence=best_match["confidence"],
+                    confidence=float(best_match["confidence"]),  # Ensure Python float
                     match_type=best_match["match_type"],
                     amount_difference=best_match["amount_difference"],
                     date_difference_days=best_match["date_difference_days"],
-                    description_similarity=best_match["description_score"],
+                    description_similarity=float(best_match["description_score"]),  # Ensure Python float
                     reference_match=best_match["reference_match"],
-                    amount_score=best_match["amount_score"],
-                    date_score=best_match["date_score"],
-                    description_score=best_match["description_score"],
-                    reference_score=1.0 if best_match["reference_match"] else 0.0,
+                    amount_score=float(best_match["amount_score"]),  # Ensure Python float
+                    date_score=float(best_match["date_score"]),  # Ensure Python float
+                    description_score=float(best_match["description_score"]),  # Ensure Python float
+                    reference_score=1.0 if best_match["reference_match"] else 0.0,  # Already Python float
                 )
                 
                 matches.append(match)

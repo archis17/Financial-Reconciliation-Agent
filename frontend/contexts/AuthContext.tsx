@@ -38,6 +38,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     await authService.login({ email, password });
+    // Small delay to ensure token is stored in localStorage
+    await new Promise(resolve => setTimeout(resolve, 100));
     const currentUser = await authService.getCurrentUser();
     setUser(currentUser);
   };
