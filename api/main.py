@@ -277,11 +277,12 @@ async def ingest_ledger(file: UploadFile = File(...)):
 async def reconcile(
     bank_file: UploadFile = File(...),
     ledger_file: UploadFile = File(...),
-    amount_tolerance: float = Form(5.0),
-    date_window_days: int = Form(7),
-    min_confidence: float = Form(0.6),
-    enable_llm: bool = Form(True),
-    min_severity_for_tickets: str = Form("low"),
+    amount_tolerance: float = Form(default=5.0),
+    date_window_days: int = Form(default=7),
+    min_confidence: float = Form(default=0.6),
+    enable_llm: bool = Form(default=True),
+    min_severity_for_tickets: str = Form(default="low"),
+
     current_user: User = Depends(require_auth),
     db: AsyncSession = Depends(get_db)
 ):

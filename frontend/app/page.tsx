@@ -74,9 +74,9 @@ function HomeContent() {
 
       // Get auth token
       const token = localStorage.getItem('access_token');
-      const headers: any = {
-        'Content-Type': 'multipart/form-data',
-      };
+      // Do not set `Content-Type` manually for FormData -
+      // the browser/axios will add the correct multipart boundary.
+      const headers: any = {};
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
@@ -107,7 +107,14 @@ function HomeContent() {
       }, 500);
 
     } catch (err: any) {
-      setError(err.response?.data?.detail || err.message || 'An error occurred during reconciliation');
+      // Log the full error for debugging
+      console.error('Reconcile error', err.response ?? err);
+
+      // FastAPI custom errors use { error, message, details }
+      const serverData = err.response?.data;
+      const serverMessage = serverData?.message || serverData?.detail;
+      // Show full server error JSON if available to help debugging
+      setError(serverMessage || (serverData ? JSON.stringify(serverData) : err.message) || 'An error occurred during reconciliation');
       setProcessing(false);
       setStep('upload');
     }
