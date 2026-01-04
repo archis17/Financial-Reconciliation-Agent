@@ -1,4 +1,4 @@
-"""
+                            """
 CSV parsers for bank statements and ledgers.
 """
 
@@ -53,7 +53,7 @@ class ColumnMapping:
         
         # Description columns
         for i, col in enumerate(header_lower):
-            if any(term in col for term in ["description", "memo", "details", "narration", "payee"]):
+            if any(term in col for term in ["description", "memo", "details", "narration", "payee", "particulars"]):
                 mapping.description = header_row[i]
                 break
         
@@ -76,7 +76,7 @@ class ColumnMapping:
         
         # Reference
         for i, col in enumerate(header_lower):
-            if any(term in col for term in ["reference", "ref", "check", "check number", "transaction id"]):
+            if any(term in col for term in ["reference", "ref", "check", "check number", "transaction id", "ledgerref"]):
                 mapping.reference = header_row[i]
                 break
         
@@ -217,6 +217,8 @@ class LedgerParser(BaseParser):
         posting_date_str = row.get(mapping.posting_date, "") if mapping.posting_date else ""
         description_str = row.get(mapping.description, "") if mapping.description else ""
         amount_str = row.get(mapping.amount, "") if mapping.amount else ""
+        debit_str = row.get(mapping.debit, "") if mapping.debit else ""
+        credit_str = row.get(mapping.credit, "") if mapping.credit else ""
         tx_type_str = row.get(mapping.transaction_type, "") if mapping.transaction_type else ""
         reference_str = row.get(mapping.reference, "") if mapping.reference else ""
         account_str = row.get(mapping.account, "") if mapping.account else ""
@@ -233,6 +235,8 @@ class LedgerParser(BaseParser):
         # Normalize amount and type
         amount, tx_type = AmountNormalizer.normalize(
             amount_str=amount_str,
+            debit_amount=debit_str,
+            credit_amount=credit_str,
             transaction_type_str=tx_type_str
         )
         
