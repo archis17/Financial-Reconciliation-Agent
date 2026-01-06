@@ -1,4 +1,4 @@
-                            """
+"""
 CSV parsers for bank statements and ledgers.
 """
 
@@ -92,6 +92,25 @@ class ColumnMapping:
         
         return mapping
 
+    def validate(self) -> List[str]:
+        """
+        Validate that critical columns are mapped.
+        
+        Returns:
+            List of error messages (empty if valid)
+        """
+        errors = []
+        
+        # Must have at least one date field
+        if not self.date and not self.posting_date:
+            errors.append("Missing date column mapping (need 'date' or 'posting_date')")
+            
+        # Must have value fields: either 'amount' OR ('debit' AND 'credit')
+        if not self.amount and not (self.debit and self.credit):
+            errors.append("Missing value column mapping (need 'amount' or both 'debit' and 'credit')")
+            
+        return errors
+
 
 class BaseParser:
     """Base class for CSV parsers."""
@@ -125,6 +144,12 @@ class BaseParser:
                     self.column_mapping = ColumnMapping.auto_detect(header)
                     f.seek(0)
                     reader = csv.DictReader(f)
+                
+                # Validate mapping
+                if self.column_mapping:
+                    validation_errors = self.column_mapping.validate()
+                    if validation_errors:
+                        raise ValueError(f"Invalid column mapping: {'; '.join(validation_errors)}")
                 
                 # Parse each row
                 for row_num, row in enumerate(reader, start=2):  # Start at 2 (header is row 1)
