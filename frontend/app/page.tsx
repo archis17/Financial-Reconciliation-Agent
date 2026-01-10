@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Upload, 
-  FileText, 
-  CheckCircle2, 
-  AlertCircle, 
+import {
+  Upload,
+  FileText,
+  CheckCircle2,
+  AlertCircle,
   TrendingUp,
   Download,
   ArrowRight,
@@ -20,6 +20,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import ReconciliationResults from '@/components/ReconciliationResults';
 import ProgressIndicator from '@/components/ProgressIndicator';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import ReconciliationSettings, { ReconciliationConfig } from '@/components/ReconciliationSettings';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -51,11 +52,20 @@ function HomeContent() {
     }
   };
 
-  const handleReconcile = async () => {
+  const handleReconcile = async (config?: ReconciliationConfig) => {
     if (!bankFile || !ledgerFile) {
       setError('Please upload both bank statement and ledger files');
       return;
     }
+
+    // Default config if not provided
+    const matchConfig = config || {
+      amountTolerance: 5.0,
+      dateWindowDays: 7,
+      minConfidence: 0.6,
+      enableLlm: true,
+      minSeverityForTickets: 'low'
+    };
 
     setProcessing(true);
     setError(null);
@@ -66,11 +76,11 @@ function HomeContent() {
       const formData = new FormData();
       formData.append('bank_file', bankFile);
       formData.append('ledger_file', ledgerFile);
-      formData.append('amount_tolerance', '5.0');
-      formData.append('date_window_days', '7');
-      formData.append('min_confidence', '0.6');
-      formData.append('enable_llm', 'true');
-      formData.append('min_severity_for_tickets', 'low');
+      formData.append('amount_tolerance', matchConfig.amountTolerance.toString());
+      formData.append('date_window_days', matchConfig.dateWindowDays.toString());
+      formData.append('min_confidence', matchConfig.minConfidence.toString());
+      formData.append('enable_llm', matchConfig.enableLlm.toString());
+      formData.append('min_severity_for_tickets', matchConfig.minSeverityForTickets);
 
       // Get auth token
       const token = localStorage.getItem('access_token');
@@ -99,7 +109,7 @@ function HomeContent() {
 
       clearInterval(progressInterval);
       setProgress(100);
-      
+
       setTimeout(() => {
         setResults(response.data);
         setStep('results');
@@ -216,9 +226,16 @@ function UploadStep({
   bankFile: File | null;
   ledgerFile: File | null;
   onFileSelect: (type: 'bank' | 'ledger', file: File | null) => void;
-  onReconcile: () => void;
+  onReconcile: (config: ReconciliationConfig) => void;
   error: string | null;
 }) {
+  const [config, setConfig] = useState<ReconciliationConfig>({
+    amountTolerance: 5.0,
+    dateWindowDays: 7,
+    minConfidence: 0.6,
+    enableLlm: true,
+    minSeverityForTickets: 'low'
+  });
   return (
     <div className="max-w-4xl mx-auto">
       <div className="text-center mb-10">
@@ -256,10 +273,12 @@ function UploadStep({
         </motion.div>
       )}
 
+      <ReconciliationSettings config={config} onChange={setConfig} />
+
       <motion.button
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
-        onClick={onReconcile}
+        onClick={() => onReconcile(config)}
         disabled={!bankFile || !ledgerFile}
         className="w-full py-3.5 px-6 bg-blue-600 text-white rounded-lg font-medium text-base shadow-sm hover:bg-blue-700 hover:shadow transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
