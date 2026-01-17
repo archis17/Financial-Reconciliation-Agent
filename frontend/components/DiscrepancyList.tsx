@@ -2,13 +2,14 @@
 
 import { motion } from 'framer-motion';
 import { AlertTriangle, Info, CheckCircle2 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/Card';
 
 export default function DiscrepancyList({ tickets }: { tickets: any[] }) {
   if (!tickets || tickets.length === 0) {
     return (
       <div className="text-center py-12">
-        <CheckCircle2 className="w-16 h-16 text-green-600 mx-auto mb-4" />
-        <p className="text-slate-600">No discrepancies found. All transactions matched successfully!</p>
+        <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
+        <p className="text-muted-foreground">No discrepancies found. All transactions matched successfully.</p>
       </div>
     );
   }
@@ -21,32 +22,28 @@ export default function DiscrepancyList({ tickets }: { tickets: any[] }) {
         
         const severityStyles = {
           critical: {
-            border: 'border-red-500',
-            bg: 'bg-red-50',
-            iconBg: 'bg-red-100',
-            iconColor: 'text-red-600',
-            badge: 'bg-red-100 text-red-700',
+            border: 'border-red-500/50',
+            bg: 'bg-red-500/5',
+            icon: 'text-red-500',
+            badge: 'bg-red-500/10 text-red-500 border-red-500/20',
           },
           high: {
-            border: 'border-orange-500',
-            bg: 'bg-orange-50',
-            iconBg: 'bg-orange-100',
-            iconColor: 'text-orange-600',
-            badge: 'bg-orange-100 text-orange-700',
+            border: 'border-orange-500/50',
+            bg: 'bg-orange-500/5',
+            icon: 'text-orange-500',
+            badge: 'bg-orange-500/10 text-orange-500 border-orange-500/20',
           },
           medium: {
-            border: 'border-yellow-500',
-            bg: 'bg-yellow-50',
-            iconBg: 'bg-yellow-100',
-            iconColor: 'text-yellow-600',
-            badge: 'bg-yellow-100 text-yellow-700',
+            border: 'border-yellow-500/50',
+            bg: 'bg-yellow-500/5',
+            icon: 'text-yellow-500',
+            badge: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
           },
           low: {
-            border: 'border-blue-500',
-            bg: 'bg-blue-50',
-            iconBg: 'bg-blue-100',
-            iconColor: 'text-blue-600',
-            badge: 'bg-blue-100 text-blue-700',
+            border: 'border-blue-500/50',
+            bg: 'bg-blue-500/5',
+            icon: 'text-blue-500',
+            badge: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
           },
         };
 
@@ -55,63 +52,66 @@ export default function DiscrepancyList({ tickets }: { tickets: any[] }) {
         return (
           <motion.div
             key={index}
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className={`card p-6 border-l-4 ${style.border} ${style.bg}`}
+            transition={{ delay: index * 0.05 }}
           >
-            <div className="flex items-start gap-4">
-              <div className={`p-2 rounded-lg ${style.iconBg}`}>
-                <AlertTriangle className={`w-6 h-6 ${style.iconColor}`} />
-              </div>
-              
-              <div className="flex-1">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-slate-900 font-medium text-lg">
-                    {ticketData.title || ticket.fields?.summary || 'Untitled'}
-                  </h4>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${style.badge}`}>
-                    {severity.toUpperCase()}
-                  </span>
-                </div>
-                
-                <p className="text-slate-700 mb-4">
-                  {ticketData.description || ticket.fields?.description || ticketData.machine_reason || 'No description available'}
-                </p>
-
-                {ticketData.llm_explanation && (
-                  <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Info className="w-4 h-4 text-blue-600" />
-                      <span className="text-sm font-semibold text-blue-700">AI Explanation</span>
-                    </div>
-                    <p className="text-gray-700 text-sm">{ticketData.llm_explanation}</p>
+            <Card className={`border-l-4 ${style.border} ${style.bg}`}>
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className={`p-2 rounded-lg bg-surface border border-border`}>
+                    <AlertTriangle className={`w-5 h-5 ${style.icon}`} />
                   </div>
-                )}
-
-                {ticketData.suggested_action && (
-                  <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                    <div className="text-sm font-semibold text-gray-700 mb-1">Suggested Action</div>
-                    <p className="text-gray-600 text-sm">{ticketData.suggested_action}</p>
-                  </div>
-                )}
-
-                {ticketData.amount && (
-                  <div className="mt-4 flex gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-600">Amount: </span>
-                      <span className="text-gray-900 font-semibold">${ticketData.amount}</span>
+                  
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold text-lg text-foreground">
+                        {ticketData.title || ticket.fields?.summary || 'Untitled'}
+                      </h4>
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium border ${style.badge} uppercase tracking-wide`}>
+                        {severity}
+                      </span>
                     </div>
-                    {ticketData.date && (
-                      <div>
-                        <span className="text-gray-600">Date: </span>
-                        <span className="text-gray-900">{new Date(ticketData.date).toLocaleDateString()}</span>
+                    
+                    <p className="text-muted-foreground mb-4 text-sm">
+                      {ticketData.description || ticket.fields?.description || ticketData.machine_reason || 'No description available'}
+                    </p>
+
+                    {ticketData.llm_explanation && (
+                      <div className="mb-4 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Info className="w-4 h-4 text-primary" />
+                          <span className="text-sm font-semibold text-primary">AI Inference</span>
+                        </div>
+                        <p className="text-foreground/80 text-sm leading-relaxed">{ticketData.llm_explanation}</p>
+                      </div>
+                    )}
+
+                    {ticketData.suggested_action && (
+                      <div className="p-4 bg-surface border border-border rounded-lg">
+                        <div className="text-sm font-semibold text-foreground mb-1">Recommended Action</div>
+                        <p className="text-muted-foreground text-sm">{ticketData.suggested_action}</p>
+                      </div>
+                    )}
+
+                    {ticketData.amount && (
+                      <div className="mt-4 flex gap-6 text-sm border-t border-border pt-3">
+                        <div>
+                          <span className="text-muted-foreground">Amount: </span>
+                          <span className="text-foreground font-mono font-medium">${ticketData.amount}</span>
+                        </div>
+                        {ticketData.date && (
+                          <div>
+                            <span className="text-muted-foreground">Date: </span>
+                            <span className="text-foreground font-mono font-medium">{new Date(ticketData.date).toLocaleDateString()}</span>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
-                )}
-              </div>
-            </div>
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
         );
       })}

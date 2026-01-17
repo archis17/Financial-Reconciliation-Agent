@@ -8,19 +8,21 @@ import {
   CheckCircle2,
   AlertCircle,
   TrendingUp,
-  Download,
   ArrowRight,
   Loader2,
   LogOut,
-  User
+  User,
+  LayoutDashboard
 } from 'lucide-react';
 import axios from 'axios';
-import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import ReconciliationResults from '@/components/ReconciliationResults';
 import ProgressIndicator from '@/components/ProgressIndicator';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import ReconciliationSettings, { ReconciliationConfig } from '@/components/ReconciliationSettings';
+import { Button } from '@/components/ui/Button';
+import { Card, CardContent } from '@/components/ui/Card';
+import { cn } from '@/lib/utils';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -45,11 +47,8 @@ function HomeContent() {
   const [progress, setProgress] = useState(0);
 
   const handleFileSelect = (type: 'bank' | 'ledger', file: File | null) => {
-    if (type === 'bank') {
-      setBankFile(file);
-    } else {
-      setLedgerFile(file);
-    }
+    if (type === 'bank') setBankFile(file);
+    else setLedgerFile(file);
   };
 
   const handleReconcile = async (config?: ReconciliationConfig) => {
@@ -58,7 +57,6 @@ function HomeContent() {
       return;
     }
 
-    // Default config if not provided
     const matchConfig = config || {
       amountTolerance: 5.0,
       dateWindowDays: 7,
@@ -82,16 +80,10 @@ function HomeContent() {
       formData.append('enable_llm', matchConfig.enableLlm.toString());
       formData.append('min_severity_for_tickets', matchConfig.minSeverityForTickets);
 
-      // Get auth token
       const token = localStorage.getItem('access_token');
-      // Do not set `Content-Type` manually for FormData -
-      // the browser/axios will add the correct multipart boundary.
       const headers: any = {};
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
+      if (token) headers['Authorization'] = `Bearer ${token}`;
 
-      // Simulate progress
       const progressInterval = setInterval(() => {
         setProgress(prev => {
           if (prev >= 90) {
@@ -104,7 +96,7 @@ function HomeContent() {
 
       const response = await axios.post(`${API_URL}/api/reconcile`, formData, {
         headers,
-        timeout: 300000, // 5 minutes
+        timeout: 300000,
       });
 
       clearInterval(progressInterval);
@@ -117,13 +109,9 @@ function HomeContent() {
       }, 500);
 
     } catch (err: any) {
-      // Log the full error for debugging
       console.error('Reconcile error', err.response ?? err);
-
-      // FastAPI custom errors use { error, message, details }
       const serverData = err.response?.data;
       const serverMessage = serverData?.message || serverData?.detail;
-      // Show full server error JSON if available to help debugging
       setError(serverMessage || (serverData ? JSON.stringify(serverData) : err.message) || 'An error occurred during reconciliation');
       setProcessing(false);
       setStep('upload');
@@ -131,34 +119,37 @@ function HomeContent() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/20">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200">
+      <header className="border-b border-border bg-surface/50 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <TrendingUp className="w-7 h-7 text-blue-600 mr-2" />
-              <h1 className="text-xl font-semibold text-slate-900">Financial Reconciliation</h1>
+            <div className="flex items-center gap-2">
+              <div className="bg-primary/10 p-2 rounded-lg">
+                <LayoutDashboard className="w-5 h-5 text-primary" />
+              </div>
+              <h1 className="text-xl font-bold font-display tracking-tight">FinRec<span className="text-primary">.AI</span></h1>
             </div>
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-sm text-slate-600">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground px-3 py-1.5 rounded-full bg-surface border border-border">
                 <User className="w-4 h-4" />
                 <span className="font-medium">{user?.email}</span>
               </div>
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={logout}
-                className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors"
+                className="text-muted-foreground hover:text-foreground"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-4 h-4 mr-2" />
                 Logout
-              </button>
+              </Button>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <AnimatePresence mode="wait">
           {step === 'upload' && (
             <motion.div
@@ -211,7 +202,7 @@ function HomeContent() {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </main>
     </div>
   );
 }
@@ -236,24 +227,25 @@ function UploadStep({
     enableLlm: true,
     minSeverityForTickets: 'low'
   });
+  
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="text-center mb-10">
-        <h2 className="text-3xl font-semibold text-slate-900 mb-2">Upload Files</h2>
-        <p className="text-slate-600">Upload your bank statement and internal ledger to begin reconciliation</p>
+    <div className="max-w-4xl mx-auto space-y-8">
+      <div className="text-center space-y-2">
+        <h2 className="text-3xl font-display font-bold">Initiate Protocol</h2>
+        <p className="text-muted-foreground">Upload financial datasets to begin atomic reconciliation</p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6 mb-8">
+      <div className="grid md:grid-cols-2 gap-6">
         <FileUploadCard
           title="Bank Statement"
-          icon={<FileText className="w-8 h-8" />}
+          icon={<TrendingUp className="w-6 h-6" />}
           file={bankFile}
           onFileSelect={(file) => onFileSelect('bank', file)}
           acceptedTypes=".csv"
         />
         <FileUploadCard
           title="Internal Ledger"
-          icon={<FileText className="w-8 h-8" />}
+          icon={<FileText className="w-6 h-6" />}
           file={ledgerFile}
           onFileSelect={(file) => onFileSelect('ledger', file)}
           acceptedTypes=".csv"
@@ -264,27 +256,27 @@ function UploadStep({
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700"
+          className="p-4 bg-red-900/20 border border-red-900/50 rounded-lg text-red-200 flex items-center gap-3"
         >
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-5 h-5" />
-            <span>{error}</span>
-          </div>
+          <AlertCircle className="w-5 h-5" />
+          <span>{error}</span>
         </motion.div>
       )}
 
       <ReconciliationSettings config={config} onChange={setConfig} />
 
-      <motion.button
-        whileHover={{ scale: 1.01 }}
-        whileTap={{ scale: 0.99 }}
-        onClick={() => onReconcile(config)}
-        disabled={!bankFile || !ledgerFile}
-        className="w-full py-3.5 px-6 bg-blue-600 text-white rounded-lg font-medium text-base shadow-sm hover:bg-blue-700 hover:shadow transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-      >
-        <span>Start Reconciliation</span>
-        <ArrowRight className="w-5 h-5" />
-      </motion.button>
+      <div className="flex justify-center pt-4">
+        <Button
+          size="lg"
+          onClick={() => onReconcile(config)}
+          disabled={!bankFile || !ledgerFile}
+          className="w-full md:w-auto min-w-[200px]"
+          variant="primary"
+        >
+          <span>Start Analysis</span>
+          <ArrowRight className="ml-2 w-4 h-4" />
+        </Button>
+      </div>
     </div>
   );
 }
@@ -305,112 +297,108 @@ function FileUploadCard({
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      onFileSelect(files[0]);
-    }
+    if (files.length > 0) onFileSelect(files[0]);
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      onFileSelect(e.target.files[0]);
-    }
+    if (e.target.files && e.target.files.length > 0) onFileSelect(e.target.files[0]);
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="card p-6"
-    >
-      <div className="flex items-center gap-3 mb-4 text-slate-900">
-        <div className="text-blue-600">{icon}</div>
-        <h3 className="text-lg font-medium">{title}</h3>
-      </div>
+    <Card className={cn(
+      "border-dashed transition-colors",
+      file ? "border-primary/50 bg-primary/5" : "hover:border-primary/50"
+    )}>
+      <CardContent className="p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-surface rounded-md text-primary ring-1 ring-white/10">{icon}</div>
+          <h3 className="font-semibold">{title}</h3>
+        </div>
 
-      <div
-        onDrop={handleDrop}
-        onDragOver={(e) => e.preventDefault()}
-        className="border-2 border-dashed border-slate-200 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer bg-slate-50"
-      >
-        <input
-          type="file"
-          accept={acceptedTypes}
-          onChange={handleFileInput}
-          className="hidden"
-          id={`file-input-${title}`}
-        />
-        <label
-          htmlFor={`file-input-${title}`}
-          className="cursor-pointer block"
+        <div
+          onDrop={handleDrop}
+          onDragOver={(e) => e.preventDefault()}
+          className="rounded-lg p-8 text-center transition-all cursor-pointer border border-transparent hover:bg-surface/50"
         >
-          {file ? (
-            <motion.div
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              className="space-y-2"
-            >
-              <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto" />
-              <p className="text-slate-900 font-medium">{file.name}</p>
-              <p className="text-sm text-slate-500">
-                {(file.size / 1024).toFixed(2)} KB
-              </p>
-            </motion.div>
-          ) : (
-            <div className="space-y-2">
-              <Upload className="w-12 h-12 text-slate-400 mx-auto" />
-              <p className="text-slate-700">Drop file here or click to upload</p>
-              <p className="text-sm text-slate-500">CSV format</p>
-            </div>
-          )}
-        </label>
-      </div>
+          <input
+            type="file"
+            accept={acceptedTypes}
+            onChange={handleFileInput}
+            className="hidden"
+            id={`file-input-${title}`}
+          />
+          <label htmlFor={`file-input-${title}`} className="cursor-pointer block">
+            {file ? (
+              <motion.div
+                initial={{ scale: 0.9 }}
+                animate={{ scale: 1 }}
+                className="space-y-2"
+              >
+                <CheckCircle2 className="w-10 h-10 text-accent mx-auto" />
+                <p className="font-medium text-foreground">{file.name}</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                  {(file.size / 1024).toFixed(2)} KB
+                </p>
+              </motion.div>
+            ) : (
+              <div className="space-y-3">
+                <div className="w-12 h-12 bg-surface rounded-full flex items-center justify-center mx-auto ring-1 ring-white/5">
+                  <Upload className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground">Click to upload</p>
+                  <p className="text-xs text-muted-foreground/50 mt-1">or drag and drop CSV</p>
+                </div>
+              </div>
+            )}
+          </label>
+        </div>
 
-      {file && (
-        <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          onClick={() => onFileSelect(null)}
-          className="mt-4 text-sm text-red-600 hover:text-red-700"
-        >
-          Remove file
-        </motion.button>
-      )}
-    </motion.div>
+        {file && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onFileSelect(null)}
+            className="w-full mt-4 text-red-400 hover:text-red-300 hover:bg-red-900/20"
+          >
+            Remove File
+          </Button>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
 function ProcessingStep({ progress }: { progress: number }) {
   return (
-    <div className="max-w-2xl mx-auto text-center">
+    <div className="max-w-xl mx-auto text-center space-y-8 py-12">
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ type: "spring", stiffness: 200 }}
-        className="mb-8"
+        className="relative mx-auto w-24 h-24 flex items-center justify-center"
       >
-        <Loader2 className="w-16 h-16 text-blue-600 mx-auto animate-spin" />
+        <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full" />
+        <Loader2 className="w-12 h-12 text-primary animate-spin relative z-10" />
       </motion.div>
 
-      <h2 className="text-3xl font-semibold text-slate-900 mb-4">
-        Processing Reconciliation
-      </h2>
-      <p className="text-slate-600 mb-8">
-        Analyzing transactions, matching records, and detecting discrepancies...
-      </p>
+      <div className="space-y-2">
+        <h2 className="text-2xl font-display font-bold">Processing Data</h2>
+        <p className="text-muted-foreground">Neural matching engine active...</p>
+      </div>
 
       <ProgressIndicator progress={progress} />
 
-      <div className="mt-8 grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-3">
         {['Ingesting', 'Matching', 'Analyzing'].map((step, i) => (
           <motion.div
             key={step}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.2 }}
-            className="card p-4"
+            className="p-3 bg-surface border border-border rounded-lg text-xs font-medium text-muted-foreground"
           >
-            <div className="text-blue-600 font-medium mb-2">{step}</div>
-            <div className="text-sm text-slate-500">In progress...</div>
+            {step}
           </motion.div>
         ))}
       </div>
