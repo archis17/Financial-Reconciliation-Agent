@@ -4,7 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { UserPlus, Mail, Lock, AlertCircle, CheckCircle } from 'lucide-react';
+import { UserPlus, Mail, Lock, AlertCircle, ArrowRight, CheckCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/Card';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -15,30 +19,23 @@ export default function RegisterPage() {
   const { register, isAuthenticated } = useAuth();
   const router = useRouter();
 
-  // Redirect if already authenticated
   useEffect(() => {
-    if (isAuthenticated) {
-      router.push('/');
-    }
+    if (isAuthenticated) router.push('/');
   }, [isAuthenticated, router]);
 
-  // Don't render form if already authenticated
-  if (isAuthenticated) {
-    return null;
-  }
+  if (isAuthenticated) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    // Validation
     if (password.length < 8) {
-      setError('Password must be at least 8 characters long');
+      setError('Password sequence too short (min 8 chars)');
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError('Password sequences mismatch');
       return;
     }
 
@@ -48,132 +45,105 @@ export default function RegisterPage() {
       await register(email, password);
       router.push('/');
     } catch (err: any) {
-      setError(err.message || 'Registration failed. Please try again.');
+      setError(err.message || 'Registration failed.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
-            Create your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
-            <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
-              sign in to your existing account
-            </Link>
-          </p>
-        </div>
-
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md flex items-center gap-2">
-              <AlertCircle className="h-5 w-5" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email address
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="you@example.com"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Password
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="••••••••"
-                />
-              </div>
-              <p className="mt-1 text-xs text-gray-500">Must be at least 8 characters</p>
-            </div>
-
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="••••••••"
-                />
-              </div>
-              {password && confirmPassword && password === confirmPassword && (
-                <p className="mt-1 text-xs text-green-600 flex items-center gap-1">
-                  <CheckCircle className="h-3 w-3" />
-                  Passwords match
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex justify-center items-center gap-2 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Creating account...
-                </>
-              ) : (
-                <>
-                  <UserPlus className="h-4 w-4" />
-                  Create account
-                </>
-              )}
-            </button>
-          </div>
-        </form>
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute inset-0 z-0">
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl opacity-50" />
       </div>
+
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md z-10"
+      >
+        <Card className="border-border/50 bg-black/40 backdrop-blur-xl">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-3xl text-center">New Identity</CardTitle>
+            <CardDescription className="text-center">
+              Establish new secure credentials
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div className="bg-red-900/20 border border-red-900/50 text-red-200 px-4 py-3 rounded-md flex items-center gap-2 text-sm">
+                  <AlertCircle className="h-4 w-4" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Input 
+                    type="email" 
+                    placeholder="name@company.com" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    icon={<Mail />}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Input 
+                    type="password" 
+                    placeholder="Password (min 8 chars)" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    icon={<Lock />}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Input 
+                    type="password" 
+                    placeholder="Confirm Password" 
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    icon={<Lock />}
+                  />
+                  {password && confirmPassword && password === confirmPassword && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="text-xs text-accent flex items-center gap-1"
+                    >
+                      <CheckCircle className="h-3 w-3" />
+                      Sequences match
+                    </motion.div>
+                  )}
+                </div>
+              </div>
+
+              <Button 
+                type="submit" 
+                className="w-full" 
+                loading={loading} 
+                variant="primary"
+              >
+                {!loading && <UserPlus className="mr-2 h-4 w-4" />}
+                Create Identity
+              </Button>
+            </form>
+          </CardContent>
+          <CardFooter className="justify-center">
+            <p className="text-sm text-muted-foreground text-center">
+              Existing entity?{' '}
+              <Link href="/login" className="text-primary hover:text-primary/80 transition-colors inline-flex items-center">
+                Access Grid <ArrowRight className="ml-1 w-3 h-3" />
+              </Link>
+            </p>
+          </CardFooter>
+        </Card>
+      </motion.div>
     </div>
   );
 }
-

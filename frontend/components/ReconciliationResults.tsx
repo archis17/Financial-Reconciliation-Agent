@@ -2,9 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { 
-  CheckCircle2, 
   AlertTriangle, 
-  TrendingUp, 
   Download,
   RefreshCw,
   FileText,
@@ -16,6 +14,9 @@ import axios from 'axios';
 import DiscrepancyList from './DiscrepancyList';
 import SummaryCards from './SummaryCards';
 import Charts from './Charts';
+import { Button } from '@/components/ui/Button';
+import { Card, CardContent } from '@/components/ui/Card';
+import { cn } from '@/lib/utils';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -34,9 +35,7 @@ export default function ReconciliationResults({
     try {
       const token = localStorage.getItem('access_token');
       const headers: any = {};
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
+      if (token) headers['Authorization'] = `Bearer ${token}`;
 
       const response = await axios.get(
         `${API_URL}/api/reports/${reconciliationId}/${type}`,
@@ -58,7 +57,7 @@ export default function ReconciliationResults({
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="space-y-8">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -66,33 +65,30 @@ export default function ReconciliationResults({
         className="flex items-center justify-between"
       >
         <div>
-          <h2 className="text-4xl font-semibold text-slate-900 mb-2">
-            Reconciliation Complete
+          <h2 className="text-3xl font-display font-bold text-foreground mb-1">
+            Analysis Complete
           </h2>
-          <p className="text-slate-600">
+          <p className="text-muted-foreground font-mono text-sm">
             ID: {reconciliationId.substring(0, 8)}...
           </p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.99 }}
+        <Button
           onClick={onReset}
-          className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-900 rounded-lg flex items-center gap-2 transition-colors font-medium"
+          variant="ghost"
+          className="text-muted-foreground hover:text-foreground hover:bg-surface border border-transparent hover:border-border"
         >
-          <RefreshCw className="w-5 h-5" />
-          New Reconciliation
-        </motion.button>
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Reset Protocol
+        </Button>
       </motion.div>
 
-      {/* Summary Cards */}
       <SummaryCards summary={results.summary} />
 
-      {/* Charts */}
       <Charts summary={results.summary} />
 
       {/* Tabs */}
-      <div className="card p-6 bg-white">
-        <div className="flex gap-4 mb-6 border-b border-slate-200">
+      <Card>
+        <div className="flex border-b border-border">
           {[
             { id: 'summary', label: 'Summary', icon: BarChart3 },
             { id: 'discrepancies', label: 'Discrepancies', icon: AlertTriangle },
@@ -101,20 +97,26 @@ export default function ReconciliationResults({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 px-4 py-2 border-b-2 transition-colors font-medium ${
+              className={cn(
+                "flex items-center gap-2 px-6 py-4 transition-all font-medium text-sm relative",
                 activeTab === tab.id
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-slate-600 hover:text-slate-900'
-              }`}
+                  ? "text-primary bg-primary/5"
+                  : "text-muted-foreground hover:text-foreground hover:bg-surface/50"
+              )}
             >
-              <tab.icon className="w-5 h-5" />
+              <tab.icon className="w-4 h-4" />
               {tab.label}
+              {activeTab === tab.id && (
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                />
+              )}
             </button>
           ))}
         </div>
 
-        {/* Tab Content */}
-        <div className="mt-6">
+        <CardContent className="p-6">
           {activeTab === 'summary' && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -122,16 +124,16 @@ export default function ReconciliationResults({
               className="space-y-4"
             >
               <div className="grid md:grid-cols-2 gap-4">
-                <div className="card p-4">
-                  <div className="text-sm text-gray-600 mb-1">Match Rate</div>
-                  <div className="text-3xl font-bold text-gray-900">
+                <div className="p-4 bg-surface border border-border rounded-lg">
+                  <div className="text-sm text-muted-foreground mb-1">Match Rate</div>
+                  <div className="text-3xl font-bold text-foreground font-display">
                     {((results.summary.matched / (results.summary.matched + results.summary.unmatched_bank + results.summary.unmatched_ledger)) * 100).toFixed(1)}%
                   </div>
                 </div>
-                <div className="card p-4">
-                  <div className="text-sm text-gray-600 mb-1">Processing Time</div>
-                  <div className="text-3xl font-bold text-gray-900">
-                    {results.summary.processing_time?.toFixed(2) || '0.00'}s
+                <div className="p-4 bg-surface border border-border rounded-lg">
+                  <div className="text-sm text-muted-foreground mb-1">Processing Time</div>
+                  <div className="text-3xl font-bold text-foreground font-display">
+                    {results.summary.processing_time?.toFixed(2) || '0.00'}<span className="text-lg text-muted-foreground font-sans font-normal ml-1">s</span>
                   </div>
                 </div>
               </div>
@@ -148,30 +150,30 @@ export default function ReconciliationResults({
               animate={{ opacity: 1 }}
               className="space-y-4"
             >
-              <div className="text-gray-900 mb-4">
-                {results.tickets?.length || 0} tickets generated
+              <div className="text-muted-foreground mb-4 text-sm font-medium">
+                {results.tickets?.length || 0} tickets generated in system
               </div>
               {results.tickets?.map((ticket: any, index: number) => (
                 <motion.div
                   key={index}
-                  initial={{ opacity: 0, x: -20 }}
+                  initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="card p-4 border-l-4 border-blue-600"
+                  transition={{ delay: index * 0.05 }}
+                  className="p-4 bg-surface border-l-4 border-l-primary border border-border rounded-r-lg"
                 >
                   <div className="flex items-start justify-between">
                     <div>
-                      <h4 className="text-gray-900 font-semibold mb-2">
-                        {ticket.ticket?.title || ticket.fields?.summary || 'Untitled Ticket'}
+                      <h4 className="text-foreground font-semibold mb-2">
+                        {ticket.ticket?.title || ticket.fields?.summary || 'Untitled'}
                       </h4>
-                      <p className="text-gray-600 text-sm">
+                      <p className="text-muted-foreground text-sm">
                         {ticket.ticket?.description || ticket.fields?.description || 'No description'}
                       </p>
                       <div className="flex gap-2 mt-3">
-                        <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
+                        <span className="px-2 py-0.5 border border-primary/20 bg-primary/5 text-primary rounded text-xs">
                           {ticket.ticket?.priority || ticket.fields?.priority?.name || 'Medium'}
                         </span>
-                        <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                        <span className="px-2 py-0.5 border border-border bg-surface text-muted-foreground rounded text-xs">
                           {ticket.ticket?.severity || 'Medium'}
                         </span>
                       </div>
@@ -181,8 +183,8 @@ export default function ReconciliationResults({
               ))}
             </motion.div>
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Download Buttons */}
       <motion.div
@@ -190,24 +192,24 @@ export default function ReconciliationResults({
         animate={{ opacity: 1, y: 0 }}
         className="flex gap-4"
       >
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+        <Button
           onClick={() => handleDownload('csv')}
-          className="flex-1 py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
+          className="flex-1"
+          variant="primary"
+          size="lg"
         >
-          <Download className="w-5 h-5" />
-          Download CSV Report
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          <Download className="w-4 h-4 mr-2" />
+          Export CSV Report
+        </Button>
+        <Button
           onClick={() => handleDownload('summary')}
-          className="flex-1 py-3 px-6 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors"
+          className="flex-1"
+          variant="secondary"
+          size="lg"
         >
-          <FileText className="w-5 h-5" />
-          Download Summary
-        </motion.button>
+          <FileText className="w-4 h-4 mr-2" />
+          Export Summary
+        </Button>
       </motion.div>
     </div>
   );

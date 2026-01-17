@@ -105,6 +105,7 @@ curl http://localhost:8000/health
 
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:8000
+  PYTHONPATH=. ./venv/bin/uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
 - **API Docs**: http://localhost:8000/api/docs
 - **Prometheus**: http://localhost:9090
 - **Grafana**: http://localhost:3001
@@ -126,4 +127,3 @@ curl http://localhost:8000/health
 ## License
 
 MIT
-

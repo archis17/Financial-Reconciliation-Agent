@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Unbounded, Manrope } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 
-const inter = Inter({ subsets: ["latin"] });
+const unbounded = Unbounded({ subsets: ["latin"], variable: "--font-unbounded" });
+const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
 
 export const metadata: Metadata = {
   title: "AI Financial Reconciliation Agent",
@@ -17,7 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${manrope.variable} ${unbounded.variable} font-sans antialiased bg-background text-foreground`}>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

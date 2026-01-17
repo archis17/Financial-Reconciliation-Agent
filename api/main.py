@@ -45,7 +45,7 @@ from api.middleware import (
     RequestLoggingMiddleware,
     RateLimitMiddleware
 )
-from api.auth import router as auth_router
+from api.auth_routes import router as auth_router
 from api.metrics import MetricsMiddleware, record_reconciliation, record_llm_call
 from api.metrics_endpoint import metrics_endpoint
 
