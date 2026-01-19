@@ -22,7 +22,7 @@ class MatchingEngine:
         self,
         matching_config: MatchingConfig = None,
         scoring_weights: ScoringWeights = None,
-        embedding_model: str = "all-MiniLM-L6-v2"
+        embedding_model: str = "all-mpnet-base-v2"
     ):
         """
         Initialize matching engine.

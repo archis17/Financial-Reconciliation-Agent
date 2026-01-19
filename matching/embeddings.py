@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class EmbeddingMatcher:
     """Semantic matching using embeddings."""
     
-    def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
+    def __init__(self, model_name: str = "all-mpnet-base-v2"):
         """
         Initialize embedding matcher.
         
