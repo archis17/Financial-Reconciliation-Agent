@@ -33,32 +33,6 @@ cp .env.example .env
 # Edit .env and add: OPENAI_API_KEY=your-key-here
 ```
 
-## Usage
-
-### Generate Test Data
-
-```bash
-python generate_test_data.py --num-transactions 100
-```
-
-### Test Ingestion
-
-```bash
-python test_ingestion.py
-```
-
-### Test Matching
-
-```bash
-python test_matching_with_data.py
-```
-
-### Test Discrepancy Detection
-
-```bash
-python test_discrepancy_simple.py
-```
-
 ## Project Structure
 
 ```
